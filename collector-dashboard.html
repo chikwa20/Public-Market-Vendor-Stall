@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Collector Dashboard – PMSVS</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="system-page">
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <span class="brand-icon"></span>
+      <span class="sidebar-title">Market Vendor</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="collector-dashboard.html" class="nav-item active"><span class="nav-icon"></span> Dashboard</a>
+      <a href="payments.html"            class="nav-item"><span class="nav-icon"></span> Record Payment</a>
+      <a href="#" class="nav-item nav-logout" onclick="logout()"><span class="nav-icon"></span> Logout</a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">Collector Dashboard</h1>
+        <span class="breadcrumb">Home / Collections</span>
+      </div>
+      <div class="topbar-right">
+        <span class="user-info" id="userInfo"></span>
+        <span class="date-today" id="dateToday"></span>
+      </div>
+    </div>
+
+    <div class="cards-grid" id="colStatsGrid"></div>
+
+    <div class="table-section" style="margin:20px 28px;">
+      <div class="table-header">
+        <h2 class="table-title">My Collection Records</h2>
+        <a href="payments.html" style="font-size:12px;color:#0277bd;">Record New Payment</a>
+      </div>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead><tr><th>Ref #</th><th>Stall</th><th>Amount</th><th>Method</th><th>Date</th><th>Time</th></tr></thead>
+          <tbody id="myCollections"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  var session = requireAuth(['collector']);
+
+  document.addEventListener('DOMContentLoaded', function(){
+    var payments    = dbGet(KEYS.payments, SEED_PAYMENTS);
+    var collectors  = dbGet(KEYS.collectors, SEED_COLLECTORS);
+    var today       = new Date().toISOString().slice(0,10);
+    var thisMonth   = today.slice(0,7);
+
+    // Find collector record linked to this user (match by name as simple link)
+    // In a real app this would be a userId field on collector
+    var todayPays   = payments.filter(function(p){ return p.date === today; });
+    var monthPays   = payments.filter(function(p){ return p.date.startsWith(thisMonth); });
+    var todayTotal  = todayPays.reduce(function(s,p){ return s+p.amount; },0);
+    var monthTotal  = monthPays.reduce(function(s,p){ return s+p.amount; },0);
+    var allTotal    = payments.reduce(function(s,p){ return s+p.amount; },0);
+
+    document.getElementById('colStatsGrid').innerHTML = [
+      '<div class="card card-blue"><div class="card-label">Today\'s Collections</div><div class="card-value">₱'+todayTotal+'</div><div class="card-sub">'+todayPays.length+' transactions</div></div>',
+      '<div class="card card-green"><div class="card-label">This Month</div><div class="card-value">₱'+monthTotal+'</div><div class="card-sub">'+monthPays.length+' transactions</div></div>',
+      '<div class="card"><div class="card-label">All Time Total</div><div class="card-value">₱'+allTotal+'</div><div class="card-sub">'+payments.length+' total transactions</div></div>'
+    ].join('');
+
+    var tb = '';
+    payments.slice().reverse().forEach(function(p){
+      tb += '<tr><td>'+escHtml(p.ref)+'</td><td>'+escHtml(p.stall)+'</td><td>₱'+p.amount+'</td><td>'+escHtml(p.method)+'</td><td>'+escHtml(p.date)+'</td><td>'+escHtml(p.time)+'</td></tr>';
+    });
+    document.getElementById('myCollections').innerHTML = tb || '<tr><td colspan="6" style="text-align:center;color:#aaa;">No collections yet</td></tr>';
+  });
+</script>
+</body>
+</html>

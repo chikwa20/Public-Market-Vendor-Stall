@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vendor Dashboard – PMSVS</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="system-page">
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <span class="brand-icon"></span>
+      <span class="sidebar-title">Market Vendor</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="vendor-dashboard.html" class="nav-item active"><span class="nav-icon"></span> My Dashboard</a>
+      <a href="#" class="nav-item nav-logout" onclick="logout()"><span class="nav-icon"></span> Logout</a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">Vendor Dashboard</h1>
+        <span class="breadcrumb">Home / My Account</span>
+      </div>
+      <div class="topbar-right">
+        <span class="user-info" id="userInfo"></span>
+        <span class="date-today" id="dateToday"></span>
+      </div>
+    </div>
+
+    <div id="vendorContent" style="padding:24px 28px;">
+      <p style="color:#888;">Loading your information…</p>
+    </div>
+  </main>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  var session = requireAuth(['vendor']);
+
+  document.addEventListener('DOMContentLoaded', function(){
+    var vendors  = dbGet(KEYS.vendors,  SEED_VENDORS);
+    var stalls   = dbGet(KEYS.stalls,   SEED_STALLS);
+    var bills    = dbGet(KEYS.bills,    SEED_BILLS);
+    var payments = dbGet(KEYS.payments, SEED_PAYMENTS);
+
+    var vendor = vendors.find(function(v){ return v.userId === session.id; });
+    if (!vendor) {
+      document.getElementById('vendorContent').innerHTML =
+        '<div style="background:#fff;border-radius:6px;padding:32px;text-align:center;border:1px solid #dde3ea;">' +
+        '<p style="font-size:16px;color:#888;">No vendor profile linked to your account.<br>Please contact the Market Supervisor.</p></div>';
+      return;
+    }
+
+    var stall    = vendor.stallId ? stalls.find(function(s){ return s.id===vendor.stallId; }) : null;
+    var myBills  = bills.filter(function(b){ return b.vendorId===vendor.id; });
+    var myPays   = payments.filter(function(p){ return p.vendorId===vendor.id; });
+    var outstanding = myBills.reduce(function(sum,b){ return sum+(b.amount-b.paid); },0);
+    var totalPaid   = myPays.reduce(function(sum,p){ return sum+p.amount; },0);
+
+    var html = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;">';
+    html += card2('My Stall',        stall ? stall.number : 'Unassigned', stall ? stall.section : '—', '');
+    html += card2('Lease End',        vendor.leaseEnd || 'N/A',            'Lease start: '+(vendor.leaseStart||'N/A'), 'card-blue');
+    html += card2('Total Paid',       '₱'+totalPaid,                       'All payments combined', 'card-green');
+    html += card2('Outstanding',      '₱'+outstanding,                     'Pending balance', outstanding>0?'card-orange':'card-green');
+    html += '</div>';
+
+    // Bills table
+    html += '<div class="table-section"><div class="table-header"><h2 class="table-title">My Bills</h2></div><div class="table-wrapper"><table class="data-table"><thead><tr><th>Bill ID</th><th>Period</th><th>Due Date</th><th>Amount</th><th>Paid</th><th>Balance</th><th>Status</th></tr></thead><tbody>';
+    if (myBills.length) {
+      myBills.forEach(function(b){
+        var cls = b.status==='Paid'?'badge-active':b.status==='Unpaid'?'badge-inactive':'badge-pending';
+        html += '<tr><td>'+escHtml(b.id)+'</td><td>'+escHtml(b.period)+'</td><td>'+escHtml(b.dueDate)+'</td><td>₱'+b.amount+'</td><td>₱'+b.paid+'</td><td>₱'+(b.amount-b.paid)+'</td><td><span class="badge '+cls+'">'+escHtml(b.status)+'</span></td></tr>';
+      });
+    } else {
+      html += '<tr><td colspan="7" style="text-align:center;color:#aaa;">No bills found</td></tr>';
+    }
+    html += '</tbody></table></div></div>';
+
+    // Payment history
+    html += '<div class="table-section" style="margin-top:20px;"><div class="table-header"><h2 class="table-title">Payment History</h2></div><div class="table-wrapper"><table class="data-table"><thead><tr><th>Ref #</th><th>Amount</th><th>Method</th><th>Date</th><th>Time</th></tr></thead><tbody>';
+    if (myPays.length) {
+      myPays.forEach(function(p){
+        html += '<tr><td>'+escHtml(p.ref)+'</td><td>₱'+p.amount+'</td><td>'+escHtml(p.method)+'</td><td>'+escHtml(p.date)+'</td><td>'+escHtml(p.time)+'</td></tr>';
+      });
+    } else {
+      html += '<tr><td colspan="5" style="text-align:center;color:#aaa;">No payments yet</td></tr>';
+    }
+    html += '</tbody></table></div></div>';
+
+    document.getElementById('vendorContent').innerHTML = html;
+  });
+
+  function card2(label, val, sub, cls) {
+    return '<div class="card '+cls+'"><div class="card-label">'+label+'</div><div class="card-value" style="font-size:20px;">'+escHtml(String(val))+'</div><div class="card-sub">'+escHtml(String(sub))+'</div></div>';
+  }
+</script>
+</body>
+</html>

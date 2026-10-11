@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vendor Management – PMSVS</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="system-page">
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-header"><span class="brand-icon"></span><span class="sidebar-title">Market Vendor</span></div>
+    <nav class="sidebar-nav">
+      <a href="supervisor-dashboard.html" class="nav-item"><span class="nav-icon"></span> Dashboard</a>
+      <a href="vendors.html"              class="nav-item active"><span class="nav-icon"></span> Vendors</a>
+      <a href="stalls.html"               class="nav-item"><span class="nav-icon"></span> Stalls</a>
+      <a href="payments.html"             class="nav-item"><span class="nav-icon"></span> Payment &amp; Billing</a>
+      <a href="reports.html"              class="nav-item"><span class="nav-icon"></span> Reports</a>
+      <a href="collector.html"            class="nav-item"><span class="nav-icon"></span> Collectors</a>
+      <a href="#" class="nav-item nav-logout" onclick="logout()"><span class="nav-icon"></span> Logout</a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left"><h1 class="page-title">Vendor Management</h1><span class="breadcrumb">Home / Vendors</span></div>
+      <div class="topbar-right"><span class="user-info" id="userInfo"></span><span class="date-today" id="dateToday"></span></div>
+    </div>
+
+    <div class="controls-bar">
+      <div class="search-group">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search vendor by name, email, or stall…" oninput="filterVendors()" />
+      </div>
+      <div style="display:flex;gap:8px;">
+        <select id="statusFilter" class="form-input" style="width:140px;" onchange="filterVendors()">
+          <option value="">All Statuses</option>
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+        </select>
+        <button class="btn-primary" onclick="openAddVendor()">+ Add Vendor</button>
+      </div>
+    </div>
+
+    <div class="table-section" style="margin:8px 28px 28px;">
+      <div class="table-header">
+        <h2 class="table-title">Vendor List</h2>
+        <span class="table-note" id="vendorCount">Showing 0 records</span>
+      </div>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead><tr><th>Vendor ID</th><th>Name</th><th>Contact</th><th>Email</th><th>Assigned Stall</th><th>Lease End</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="vendorTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- VIEW MODAL -->
+<div class="modal-overlay" id="viewVendorModal" style="display:none;">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header"><h3>Vendor Details</h3><button class="modal-close" onclick="closeModal('viewVendorModal')">✕</button></div>
+    <div class="modal-body" id="viewVendorBody"></div>
+    <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('viewVendorModal')">Close</button></div>
+  </div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay" id="vendorFormModal" style="display:none;">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header"><h3 id="vendorFormTitle">Add Vendor</h3><button class="modal-close" onclick="closeModal('vendorFormModal')">✕</button></div>
+    <div class="modal-body">
+      <p class="form-error" id="vendorFormError"></p>
+      <input type="hidden" id="vendorEditId" />
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px;">
+        <div class="form-group"><label>Full Name <span class="required">*</span></label><input type="text" id="fVName" class="form-input" /></div>
+        <div class="form-group"><label>Contact <span class="required">*</span></label><input type="text" id="fVContact" class="form-input" placeholder="09XX-XXX-XXXX" /></div>
+        <div class="form-group"><label>Email</label><input type="email" id="fVEmail" class="form-input" /></div>
+        <div class="form-group"><label>Address</label><input type="text" id="fVAddress" class="form-input" /></div>
+        <div class="form-group"><label>Assign Stall</label>
+          <select id="fVStall" class="form-input"><option value="">— None —</option></select>
+        </div>
+        <div class="form-group"><label>Status</label>
+          <select id="fVStatus" class="form-input"><option value="Active">Active</option><option value="Inactive">Inactive</option></select>
+        </div>
+        <div class="form-group"><label>Lease Start</label><input type="date" id="fVLeaseStart" class="form-input" /></div>
+        <div class="form-group"><label>Lease End</label><input type="date" id="fVLeaseEnd" class="form-input" /></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="saveVendor()">Save Vendor</button>
+      <button class="btn-secondary" onclick="closeModal('vendorFormModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM -->
+<div class="modal-overlay" id="deleteVendorModal" style="display:none;">
+  <div class="modal">
+    <div class="modal-header"><h3>Deactivate / Delete Vendor</h3><button class="modal-close" onclick="closeModal('deleteVendorModal')">✕</button></div>
+    <div class="modal-body"><p id="deleteVendorMsg" style="font-size:14px;color:#333;line-height:1.6;"></p></div>
+    <div class="modal-footer">
+      <button class="btn-delete-confirm" onclick="confirmDeleteVendor()">Yes, Delete</button>
+      <button class="btn-secondary" onclick="closeModal('deleteVendorModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+<script src="js/app.js"></script>
+<script>
+  requireAuth(['supervisor']);
+  var vendorEditMode = false;
+  var pendingDeleteVendorId = null;
+
+  function getVendors() { return dbGet(KEYS.vendors, SEED_VENDORS); }
+  function getStalls()  { return dbGet(KEYS.stalls,  SEED_STALLS); }
+
+  function renderVendors(list) {
+    var stalls = getStalls();
+    var tb = '';
+    list.forEach(function(v){
+      var stall = v.stallId ? stalls.find(function(s){ return s.id===v.stallId; }) : null;
+      var cls   = v.status==='Active'?'badge-active':'badge-inactive';
+      tb += '<tr>' +
+        '<td>'+escHtml(v.id)+'</td><td>'+escHtml(v.name)+'</td><td>'+escHtml(v.contact)+'</td><td>'+escHtml(v.email||'—')+'</td>' +
+        '<td>'+(stall?escHtml(stall.number):'Unassigned')+'</td><td>'+escHtml(v.leaseEnd||'—')+'</td>' +
+        '<td><span class="badge '+cls+'">'+escHtml(v.status)+'</span></td>' +
+        '<td class="action-cell">' +
+          '<button class="btn-view" onclick="viewVendor(\''+v.id+'\')">View</button>' +
+          '<button class="btn-edit" onclick="openEditVendor(\''+v.id+'\')">Edit</button>' +
+          '<button class="btn-delete" onclick="deleteVendor(\''+v.id+'\')">Delete</button>' +
+        '</td></tr>';
+    });
+    document.getElementById('vendorTableBody').innerHTML = tb || '<tr><td colspan="8" style="text-align:center;color:#aaa;padding:20px;">No vendors found</td></tr>';
+    document.getElementById('vendorCount').textContent = 'Showing '+list.length+' record'+(list.length!==1?'s':'');
+  }
+
+  function filterVendors() {
+    var q  = document.getElementById('searchInput').value.toLowerCase();
+    var sf = document.getElementById('statusFilter').value;
+    var stalls = getStalls();
+    var list = getVendors().filter(function(v){
+      var stall = v.stallId ? stalls.find(function(s){ return s.id===v.stallId; }) : null;
+      var searchable = (v.name+' '+(v.email||'')+' '+(stall?stall.number:'')).toLowerCase();
+      return searchable.includes(q) && (!sf || v.status===sf);
+    });
+    renderVendors(list);
+  }
+
+  function viewVendor(id) {
+    var v = getVendors().find(function(x){ return x.id===id; });
+    if (!v) return;
+    var stall = v.stallId ? getStalls().find(function(s){ return s.id===v.stallId; }) : null;
+    var cls = v.status==='Active'?'badge-active':'badge-inactive';
+    document.getElementById('viewVendorBody').innerHTML =
+      dr('Vendor ID',v.id)+dr('Name',v.name)+dr('Contact',v.contact)+dr('Email',v.email||'—')+
+      dr('Address',v.address||'—')+dr('Assigned Stall',stall?stall.number+' ('+stall.section+')':'Unassigned')+
+      dr('Lease Start',v.leaseStart||'—')+dr('Lease End',v.leaseEnd||'—')+
+      '<div class="staff-detail-row"><span class="staff-detail-label">Status</span><span class="staff-detail-value"><span class="badge '+cls+'">'+escHtml(v.status)+'</span></span></div>';
+    showModal('viewVendorModal');
+  }
+
+  function dr(label,val){ return '<div class="staff-detail-row"><span class="staff-detail-label">'+label+'</span><span class="staff-detail-value">'+escHtml(String(val||''))+'</span></div>'; }
+
+  function populateStallDropdown(selectedId, allowOccupied) {
+    var sel    = document.getElementById('fVStall');
+    var stalls = getStalls();
+    sel.innerHTML = '<option value="">— None —</option>';
+    stalls.forEach(function(s){
+      // Allow selecting vacant stalls, or the stall currently assigned
+      if (s.status === 'Vacant' || s.id === selectedId) {
+        sel.innerHTML += '<option value="'+s.id+'"'+(s.id===selectedId?' selected':'')+'>'+escHtml(s.number)+' – '+escHtml(s.section)+'</option>';
+      }
+    });
+  }
+
+  function openAddVendor() {
+    vendorEditMode = false;
+    document.getElementById('vendorFormTitle').textContent = 'Add Vendor';
+    document.getElementById('vendorEditId').value = '';
+    ['fVName','fVContact','fVEmail','fVAddress','fVLeaseStart','fVLeaseEnd'].forEach(function(id){ document.getElementById(id).value=''; });
+    document.getElementById('vendorFormError').textContent = '';
+    setSelect('fVStatus','Active');
+    populateStallDropdown(null);
+    showModal('vendorFormModal');
+  }
+
+  function openEditVendor(id) {
+    var v = getVendors().find(function(x){ return x.id===id; });
+    if (!v) return;
+    vendorEditMode = true;
+    document.getElementById('vendorFormTitle').textContent = 'Edit Vendor';
+    document.getElementById('vendorEditId').value   = v.id;
+    document.getElementById('fVName').value         = v.name;
+    document.getElementById('fVContact').value      = v.contact;
+    document.getElementById('fVEmail').value        = v.email||'';
+    document.getElementById('fVAddress').value      = v.address||'';
+    document.getElementById('fVLeaseStart').value   = v.leaseStart||'';
+    document.getElementById('fVLeaseEnd').value     = v.leaseEnd||'';
+    document.getElementById('vendorFormError').textContent = '';
+    setSelect('fVStatus', v.status);
+    populateStallDropdown(v.stallId);
+    showModal('vendorFormModal');
+  }
+
+  function saveVendor() {
+    var name    = document.getElementById('fVName').value.trim();
+    var contact = document.getElementById('fVContact').value.trim();
+    var email   = document.getElementById('fVEmail').value.trim();
+    var address = document.getElementById('fVAddress').value.trim();
+    var stallId = document.getElementById('fVStall').value || null;
+    var status  = document.getElementById('fVStatus').value;
+    var lStart  = document.getElementById('fVLeaseStart').value;
+    var lEnd    = document.getElementById('fVLeaseEnd').value;
+    var errEl   = document.getElementById('vendorFormError');
+    errEl.textContent = '';
+
+    if (!name)    { errEl.textContent='Name is required.'; return; }
+    if (!contact) { errEl.textContent='Contact is required.'; return; }
+
+    var vendors = getVendors();
+    var stalls  = getStalls();
+
+    if (vendorEditMode) {
+      var editId = document.getElementById('vendorEditId').value;
+      var idx = vendors.findIndex(function(v){ return v.id===editId; });
+      if (idx===-1) return;
+
+      // Release old stall if changing
+      var oldStallId = vendors[idx].stallId;
+      if (oldStallId && oldStallId !== stallId) {
+        var os = stalls.findIndex(function(s){ return s.id===oldStallId; });
+        if (os!==-1) { stalls[os].status='Vacant'; stalls[os].vendorId=null; }
+      }
+      vendors[idx] = Object.assign(vendors[idx],{name:name,contact:contact,email:email,address:address,stallId:stallId,status:status,leaseStart:lStart,leaseEnd:lEnd});
+      if (stallId) {
+        var ns = stalls.findIndex(function(s){ return s.id===stallId; });
+        if (ns!==-1) { stalls[ns].status='Occupied'; stalls[ns].vendorId=editId; }
+      }
+      dbSet(KEYS.vendors, vendors);
+      dbSet(KEYS.stalls, stalls);
+      closeModal('vendorFormModal');
+      renderVendors(vendors);
+      showToast('Vendor updated.','success');
+    } else {
+      // Prevent assigning an already-occupied stall
+      if (stallId) {
+        var stallObj = stalls.find(function(s){ return s.id===stallId; });
+        if (stallObj && stallObj.status==='Occupied') {
+          errEl.textContent = 'Stall "'+stallObj.number+'" is already occupied.'; return;
+        }
+      }
+      var newV = { id:nextAutoId('VND',vendors), name:name, contact:contact, email:email, address:address, stallId:stallId, status:status, userId:null, leaseStart:lStart, leaseEnd:lEnd };
+      vendors.push(newV);
+      if (stallId) {
+        var si = stalls.findIndex(function(s){ return s.id===stallId; });
+        if (si!==-1) { stalls[si].status='Occupied'; stalls[si].vendorId=newV.id; }
+      }
+      dbSet(KEYS.vendors, vendors);
+      dbSet(KEYS.stalls, stalls);
+      closeModal('vendorFormModal');
+      renderVendors(vendors);
+      showToast('Vendor added.','success');
+    }
+  }
+
+  function deleteVendor(id) {
+    var v = getVendors().find(function(x){ return x.id===id; });
+    pendingDeleteVendorId = id;
+    document.getElementById('deleteVendorMsg').textContent = 'Delete vendor "'+(v?v.name:id)+'"? Their transaction history will be preserved but they will be removed from active records.';
+    showModal('deleteVendorModal');
+  }
+
+  function confirmDeleteVendor() {
+    var vendors = getVendors();
+    var v = vendors.find(function(x){ return x.id===pendingDeleteVendorId; });
+    // Release stall
+    if (v && v.stallId) {
+      var stalls = getStalls();
+      var si = stalls.findIndex(function(s){ return s.id===v.stallId; });
+      if (si!==-1) { stalls[si].status='Vacant'; stalls[si].vendorId=null; dbSet(KEYS.stalls, stalls); }
+    }
+    dbSet(KEYS.vendors, vendors.filter(function(x){ return x.id!==pendingDeleteVendorId; }));
+    renderVendors(getVendors());
+    closeModal('deleteVendorModal');
+    showToast('Vendor deleted.','error');
+    pendingDeleteVendorId = null;
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){ renderVendors(getVendors()); });
+</script>
+</body>
+</html>

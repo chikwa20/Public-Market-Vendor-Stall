@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stall Management – PMSVS</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="system-page">
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-header"><span class="brand-icon"></span><span class="sidebar-title">Market Vendor</span></div>
+    <nav class="sidebar-nav">
+      <a href="supervisor-dashboard.html" class="nav-item"><span class="nav-icon"></span> Dashboard</a>
+      <a href="vendors.html"              class="nav-item"><span class="nav-icon"></span> Vendors</a>
+      <a href="stalls.html"               class="nav-item active"><span class="nav-icon"></span> Stalls</a>
+      <a href="payments.html"             class="nav-item"><span class="nav-icon"></span> Payment &amp; Billing</a>
+      <a href="reports.html"              class="nav-item"><span class="nav-icon"></span> Reports</a>
+      <a href="collector.html"            class="nav-item"><span class="nav-icon"></span> Collectors</a>
+      <a href="#" class="nav-item nav-logout" onclick="logout()"><span class="nav-icon"></span> Logout</a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left"><h1 class="page-title">Stall Management</h1><span class="breadcrumb">Home / Stalls</span></div>
+      <div class="topbar-right"><span class="user-info" id="userInfo"></span><span class="date-today" id="dateToday"></span></div>
+    </div>
+
+    <div class="controls-bar">
+      <div class="search-group">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search stall by number or section…" oninput="filterStalls()" />
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <select id="statusFilter" class="form-input" style="width:160px;" onchange="filterStalls()">
+          <option value="">All Statuses</option>
+          <option value="Occupied">Occupied</option>
+          <option value="Vacant">Vacant</option>
+          <option value="Maintenance">Maintenance</option>
+        </select>
+        <button class="btn-primary" onclick="openAddStall()">+ Add Stall</button>
+      </div>
+    </div>
+
+    <div class="table-section" style="margin:8px 28px 28px;">
+      <div class="table-header">
+        <h2 class="table-title">Stall List</h2>
+        <span class="table-note" id="stallCount">Showing 0 records</span>
+      </div>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead><tr><th>Stall ID</th><th>Number</th><th>Section/Zone</th><th>Dimensions</th><th>Rate/Day</th><th>Vendor</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="stallTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- VIEW MODAL -->
+<div class="modal-overlay" id="viewStallModal" style="display:none;">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header"><h3>Stall Details</h3><button class="modal-close" onclick="closeModal('viewStallModal')">✕</button></div>
+    <div class="modal-body" id="viewStallBody"></div>
+    <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('viewStallModal')">Close</button></div>
+  </div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay" id="stallFormModal" style="display:none;">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header"><h3 id="stallFormTitle">Add Stall</h3><button class="modal-close" onclick="closeModal('stallFormModal')">✕</button></div>
+    <div class="modal-body">
+      <p class="form-error" id="stallFormError"></p>
+      <input type="hidden" id="stallEditId" />
+      <div class="form-group"><label>Stall Number <span class="required">*</span></label><input type="text" id="fStallNum" class="form-input" placeholder="e.g. A-01" /></div>
+      <div class="form-group"><label>Section / Zone <span class="required">*</span></label>
+        <select id="fStallSection" class="form-input">
+          <option>Wet Section</option><option>Dry Section</option><option>Cooked Food</option><option>Vegetable Section</option><option>General Merchandise</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Dimensions</label><input type="text" id="fStallDim" class="form-input" placeholder="e.g. 3x3m" /></div>
+      <div class="form-group"><label>Daily Rental Rate (₱) <span class="required">*</span></label><input type="number" id="fStallRate" class="form-input" placeholder="150" min="0" /></div>
+      <div class="form-group"><label>Status</label>
+        <select id="fStallStatus" class="form-input">
+          <option value="Vacant">Vacant</option><option value="Occupied">Occupied</option><option value="Maintenance">Maintenance</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="saveStall()">Save Stall</button>
+      <button class="btn-secondary" onclick="closeModal('stallFormModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM -->
+<div class="modal-overlay" id="deleteStallModal" style="display:none;">
+  <div class="modal">
+    <div class="modal-header"><h3>Confirm Delete</h3><button class="modal-close" onclick="closeModal('deleteStallModal')">✕</button></div>
+    <div class="modal-body"><p id="deleteStallMsg" style="font-size:14px;color:#333;line-height:1.6;"></p></div>
+    <div class="modal-footer">
+      <button class="btn-delete-confirm" onclick="confirmDeleteStall()">Yes, Delete</button>
+      <button class="btn-secondary" onclick="closeModal('deleteStallModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="js/app.js"></script>
+<script>
+  requireAuth(['supervisor']);
+  var stallEditMode = false;
+  var pendingDeleteStallId = null;
+
+  function getStalls()   { return dbGet(KEYS.stalls,   SEED_STALLS); }
+  function getVendors()  { return dbGet(KEYS.vendors,  SEED_VENDORS); }
+
+  function renderStalls(list) {
+    var vendors = getVendors();
+    var tb = '';
+    list.forEach(function(s){
+      var vnd = s.vendorId ? vendors.find(function(v){ return v.id===s.vendorId; }) : null;
+      var scls = s.status==='Occupied'?'badge-occupied':s.status==='Vacant'?'badge-vacant':'badge-maintenance';
+      tb += '<tr>' +
+        '<td>'+escHtml(s.id)+'</td><td>'+escHtml(s.number)+'</td><td>'+escHtml(s.section)+'</td>' +
+        '<td>'+escHtml(s.dimensions||'—')+'</td><td>₱'+s.rate+'</td>' +
+        '<td>'+(vnd?escHtml(vnd.name):'—')+'</td>' +
+        '<td><span class="badge '+scls+'">'+escHtml(s.status)+'</span></td>' +
+        '<td class="action-cell">' +
+          '<button class="btn-view" onclick="viewStall(\''+s.id+'\')">View</button>' +
+          '<button class="btn-edit" onclick="openEditStall(\''+s.id+'\')">Edit</button>' +
+          '<button class="btn-delete" onclick="deleteStall(\''+s.id+'\')">Delete</button>' +
+        '</td></tr>';
+    });
+    document.getElementById('stallTableBody').innerHTML = tb || '<tr><td colspan="8" style="text-align:center;color:#aaa;padding:20px;">No stalls found</td></tr>';
+    document.getElementById('stallCount').textContent = 'Showing '+list.length+' record'+(list.length!==1?'s':'');
+  }
+
+  function filterStalls() {
+    var q  = document.getElementById('searchInput').value.toLowerCase();
+    var sf = document.getElementById('statusFilter').value;
+    var list = getStalls().filter(function(s){
+      var match = (s.number+s.section).toLowerCase().includes(q);
+      return match && (!sf || s.status===sf);
+    });
+    renderStalls(list);
+  }
+
+  function viewStall(id) {
+    var s = getStalls().find(function(x){ return x.id===id; });
+    if (!s) return;
+    var vnd = s.vendorId ? getVendors().find(function(v){ return v.id===s.vendorId; }) : null;
+    var scls = s.status==='Occupied'?'badge-occupied':s.status==='Vacant'?'badge-vacant':'badge-maintenance';
+    document.getElementById('viewStallBody').innerHTML =
+      dr('Stall ID',s.id)+dr('Number',s.number)+dr('Section',s.section)+
+      dr('Dimensions',s.dimensions||'—')+dr('Daily Rate','₱'+s.rate)+
+      dr('Vendor',vnd?vnd.name:'Unassigned')+
+      '<div class="staff-detail-row"><span class="staff-detail-label">Status</span><span class="staff-detail-value"><span class="badge '+scls+'">'+escHtml(s.status)+'</span></span></div>';
+    showModal('viewStallModal');
+  }
+
+  function dr(label,val){ return '<div class="staff-detail-row"><span class="staff-detail-label">'+label+'</span><span class="staff-detail-value">'+escHtml(String(val))+'</span></div>'; }
+
+  function openAddStall() {
+    stallEditMode = false;
+    document.getElementById('stallFormTitle').textContent = 'Add Stall';
+    document.getElementById('stallEditId').value = '';
+    document.getElementById('fStallNum').value = '';
+    document.getElementById('fStallDim').value = '';
+    document.getElementById('fStallRate').value = '';
+    document.getElementById('stallFormError').textContent = '';
+    setSelect('fStallSection','Wet Section');
+    setSelect('fStallStatus','Vacant');
+    showModal('stallFormModal');
+  }
+
+  function openEditStall(id) {
+    var s = getStalls().find(function(x){ return x.id===id; });
+    if (!s) return;
+    stallEditMode = true;
+    document.getElementById('stallFormTitle').textContent = 'Edit Stall';
+    document.getElementById('stallEditId').value = s.id;
+    document.getElementById('fStallNum').value   = s.number;
+    document.getElementById('fStallDim').value   = s.dimensions||'';
+    document.getElementById('fStallRate').value  = s.rate;
+    document.getElementById('stallFormError').textContent = '';
+    setSelect('fStallSection', s.section);
+    setSelect('fStallStatus',  s.status);
+    showModal('stallFormModal');
+  }
+
+  function saveStall() {
+    var num     = document.getElementById('fStallNum').value.trim();
+    var section = document.getElementById('fStallSection').value;
+    var dim     = document.getElementById('fStallDim').value.trim();
+    var rate    = parseFloat(document.getElementById('fStallRate').value);
+    var status  = document.getElementById('fStallStatus').value;
+    var errEl   = document.getElementById('stallFormError');
+    errEl.textContent = '';
+
+    if (!num)       { errEl.textContent='Stall Number is required.'; return; }
+    if (isNaN(rate)){ errEl.textContent='Daily Rate must be a number.'; return; }
+
+    var stalls = getStalls();
+
+    if (stallEditMode) {
+      var id = document.getElementById('stallEditId').value;
+      var idx = stalls.findIndex(function(s){ return s.id===id; });
+      if (idx===-1) return;
+      stalls[idx].number = num; stalls[idx].section = section;
+      stalls[idx].dimensions = dim; stalls[idx].rate = rate; stalls[idx].status = status;
+      dbSet(KEYS.stalls, stalls);
+      closeModal('stallFormModal');
+      renderStalls(stalls);
+      showToast('Stall updated.','success');
+    } else {
+      if (stalls.find(function(s){ return s.number.toLowerCase()===num.toLowerCase(); })) {
+        errEl.textContent = 'Stall number "'+num+'" already exists.'; return;
+      }
+      stalls.push({ id: nextAutoId('STL',stalls), number: num, section: section, dimensions: dim, rate: rate, status: status, vendorId: null });
+      dbSet(KEYS.stalls, stalls);
+      closeModal('stallFormModal');
+      renderStalls(stalls);
+      showToast('Stall added.','success');
+    }
+  }
+
+  function deleteStall(id) {
+    var s = getStalls().find(function(x){ return x.id===id; });
+    if (s && s.status==='Occupied') { showToast('Cannot delete an occupied stall.','error'); return; }
+    pendingDeleteStallId = id;
+    document.getElementById('deleteStallMsg').textContent = 'Delete stall "'+(s?s.number:id)+'"? This cannot be undone.';
+    showModal('deleteStallModal');
+  }
+
+  function confirmDeleteStall() {
+    var stalls = getStalls().filter(function(s){ return s.id!==pendingDeleteStallId; });
+    dbSet(KEYS.stalls, stalls);
+    renderStalls(stalls);
+    closeModal('deleteStallModal');
+    showToast('Stall deleted.','error');
+    pendingDeleteStallId = null;
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){ renderStalls(getStalls()); });
+</script>
+</body>
+</html>

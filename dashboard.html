@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard – Public Market Stall Vendor</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="system-page">
+
+  <div class="layout">
+
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <span class="brand-icon"></span>
+        <span class="sidebar-title">Market Vendor</span>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="dashboard.html" class="nav-item active">
+          <span class="nav-icon"></span> Dashboard
+        </a>
+        <a href="#" class="nav-item">
+          <span class="nav-icon"></span> Vendors
+        </a>
+        <a href="#" class="nav-item">
+          <span class="nav-icon"></span> Stalls
+        </a>
+        <a href="#" class="nav-item">
+          <span class="nav-icon"></span> Lease Contracts
+        </a>
+        <a href="#" class="nav-item">
+          <span class="nav-icon"></span> Collections
+        </a>
+        <a href="#" class="nav-item">
+          <span class="nav-icon"></span> Reports
+        </a>
+        <a href="collector.html" class="nav-item">
+          <span class="nav-icon"></span> Collector
+        </a>
+        <a href="index.html" class="nav-item nav-logout">
+          <span class="nav-icon"></span> Logout
+        </a>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+
+      <div class="topbar">
+        <div class="topbar-left">
+          <h1 class="page-title">Dashboard</h1>
+          <span class="breadcrumb">Home / Dashboard</span>
+        </div>
+        <div class="topbar-right">
+          <span class="user-info"> Market Supervisor</span>
+          <span class="date-today" id="dateToday"></span>
+        </div>
+      </div>
+
+      <div class="cards-grid">
+        <div class="card">
+          <div class="card-label">Total Stalls</div>
+          <div class="card-value">40</div>
+          <div class="card-sub">All sections combined</div>
+        </div>
+        <div class="card card-green">
+          <div class="card-label">Occupied Stalls</div>
+          <div class="card-value">32</div>
+          <div class="card-sub">80% occupancy rate</div>
+        </div>
+        <div class="card card-orange">
+          <div class="card-label">Vacant Stalls</div>
+          <div class="card-value">8</div>
+          <div class="card-sub">Available for lease</div>
+        </div>
+        <div class="card card-blue">
+          <div class="card-label">Today's Collection</div>
+          <div class="card-value">₱4,350</div>
+          <div class="card-sub">As of today</div>
+        </div>
+      </div>
+
+      <div class="table-section">
+        <div class="table-header">
+          <h2 class="table-title">Stall Status</h2>
+          <span class="table-note">Showing sample stalls</span>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Stall ID</th>
+                <th>Section / Zone</th>
+                <th>Vendor</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>A-01</td>
+                <td>Wet Section</td>
+                <td>Genemark</td>
+                <td><span class="badge badge-occupied">Occupied</span></td>
+              </tr>
+              <tr>
+                <td>A-02</td>
+                <td>Wet Section</td>
+                <td>Uyus Bebe</td>
+                <td><span class="badge badge-occupied">Occupied</span></td>
+              </tr>
+              <tr>
+                <td>A-03</td>
+                <td>Wet Section</td>
+                <td>Nikka deleon</td>
+                <td><span class="badge badge-occupied">Occupied</span></td>
+              </tr>
+              <tr>
+                <td>B-01</td>
+                <td>Dry Section</td>
+                <td>—</td>
+                <td><span class="badge badge-vacant">Vacant</span></td>
+              </tr>
+              <tr>
+                <td>B-02</td>
+                <td>Dry Section</td>
+                <td>Perez Eyy shesh</td>
+                <td><span class="badge badge-occupied">Occupied</span></td>
+              </tr>
+              <tr>
+                <td>B-03</td>
+                <td>Dry Section</td>
+                <td>—</td>
+                <td><span class="badge badge-vacant">Vacant</span></td>
+              </tr>
+              <tr>
+                <td>C-01</td>
+                <td>Cooked Food</td>
+                <td>Haystt kapoya</td>
+                <td><span class="badge badge-occupied">Occupied</span></td>
+              </tr>
+              <tr>
+                <td>C-02</td>
+                <td>Cooked Food</td>
+                <td>Don Rikko</td>
+                <td><span class="badge badge-occupied">Occupied</span></td>
+              </tr>
+              <tr>
+                <td>D-01</td>
+                <td>Vegetable Section</td>
+                <td>Mayeeshesh</td>
+                <td><span class="badge badge-occupied">Occupied</span></td>
+              </tr>
+              <tr>
+                <td>D-02</td>
+                <td>Vegetable Section</td>
+                <td>—</td>
+                <td><span class="badge badge-vacant">Vacant</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="table-section">
+        <div class="table-header">
+          <h2 class="table-title">Recent Collections</h2>
+          <span class="table-note">Today's entries</span>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Collector</th>
+                <th>Stall</th>
+                <th>Amount</th>
+                <th>Payment Mode</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Johann</td>
+                <td>A-01</td>
+                <td>₱150</td>
+                <td>Cash</td>
+                <td>7:05 AM</td>
+              </tr>
+              <tr>
+                <td>This is lansssss</td>
+                <td>A-02</td>
+                <td>₱150</td>
+                <td>Cash</td>
+                <td>7:12 AM</td>
+              </tr>
+              <tr>
+                <td>Ryan</td>
+                <td>B-02</td>
+                <td>₱100</td>
+                <td>Cash</td>
+                <td>7:20 AM</td>
+              </tr>
+              <tr>
+                <td>Wagash</td>
+                <td>C-01</td>
+                <td>₱100</td>
+                <td>Cash</td>
+                <td>7:35 AM</td>
+              </tr>
+              <tr>
+                <td>Bagabag</td>
+                <td>A-03</td>
+                <td>₱150</td>
+                <td>Cash</td>
+                <td>7:48 AM</td>
+              </tr>
+              <tr>
+                <td>Johann</td>
+                <td>C-02</td>
+                <td>₱100</td>
+                <td>Cash</td>
+                <td>8:00 AM</td>
+              </tr>
+              <tr>
+                <td>Wagash</td>
+                <td>D-01</td>
+                <td>₱50</td>
+                <td>Cash</td>
+                <td>8:15 AM</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    const dateEl = document.getElementById('dateToday');
+    const today = new Date();
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    dateEl.textContent = today.toLocaleDateString('en-PH', options);
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Public Market Stall Vendor System</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="landing-page">
+
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-brand">
+        <span class="brand-icon"></span>
+        <span class="brand-name">Public Market Stall Vendor</span>
+      </div>
+      <ul class="nav-links">
+        <li><a href="#home">Home</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="login.html" class="btn-login">Login</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <section class="hero" id="home">
+    <div class="hero-content">
+      <h1>Public Market Stall Vendor System</h1>
+      <p class="hero-subtitle">
+        A simple and efficient system for managing market vendors, stalls,
+        lease contracts, and daily collections.
+      </p>
+      <div class="hero-buttons">
+        <a href="#" class="btn-primary" onclick="goDashboard(event)">Go to Dashboard</a>
+        <a href="#about" class="btn-outline">Learn More</a>
+      </div>
+    </div>
+
+  </section>
+
+  <script src="js/app.js"></script>
+  <script>
+    function goDashboard(e) {
+      e.preventDefault();
+      var session = getSession();
+      if (!session) { window.location.href = 'login.html'; return; }
+      if (session.role === 'vendor') { window.location.href = 'login.html'; return; }
+      window.location.href = dashboardFor(session.role);
+    }
+  </script>
+
+  <section class="about-section" id="about">
+    <div class="container">
+      <h2 class="section-title">About the System</h2>
+      <p class="section-desc">
+        The <strong>Public Market Stall Vendor System</strong> is developed to help
+        local government market administrators and supervisors manage their public
+        market operations more efficiently.
+      </p>
+      <div class="about-grid">
+        <div class="about-card">
+          <div class="about-icon"></div>
+          <h3>Stall Management</h3>
+          <p>Monitor all stalls in the market, track occupancy, and manage stall assignments for vendors.</p>
+        </div>
+        <div class="about-card">
+          <div class="about-icon"></div>
+          <h3>Vendor Records</h3>
+          <p>Keep complete records of registered market vendors including their personal information and stall assignments.</p>
+        </div>
+        <div class="about-card">
+          <div class="about-icon"></div>
+          <h3>Lease Contracts</h3>
+          <p>Track lease agreements between the market administration and vendors, including contract dates and renewal status.</p>
+        </div>
+        <div class="about-card">
+          <div class="about-icon"></div>
+          <h3>Daily Collections</h3>
+          <p>Record daily rental and fee collections from vendors, and generate collection reports for accounting purposes.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features-section" id="features">
+    <div class="container">
+      <h2 class="section-title">System Features</h2>
+      <div class="features-list">
+        <div class="feature-item">
+          <span class="feature-check">&#10003;</span>
+          <span>Manage vendor registrations and profiles</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-check">&#10003;</span>
+          <span>Track stall occupancy and availability</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-check">&#10003;</span>
+          <span>Monitor lease contract status and renewals</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-check">&#10003;</span>
+          <span>Record and track daily fee collections</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-check">&#10003;</span>
+          <span>Manage market collector accounts</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-check">&#10003;</span>
+          <span>Generate basic collection reports</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-check">&#10003;</span>
+          <span>View stall map and section layout</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-check">&#10003;</span>
+          <span>Record utility billings and penalties</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <span class="brand-icon"></span>
+          <span class="brand-name">Public Market Stall Vendor System</span>
+        </div>
+        <p class="footer-desc">
+          A college IT project for managing public market operations.
+        </p>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 Public Market Stall Vendor System &mdash; IT Capstone Project</p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

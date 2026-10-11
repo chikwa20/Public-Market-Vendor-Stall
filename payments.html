@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment &amp; Billing – PMSVS</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="system-page">
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-header"><span class="brand-icon"></span><span class="sidebar-title">Market Vendor</span></div>
+    <nav class="sidebar-nav">
+      <a href="supervisor-dashboard.html" class="nav-item"><span class="nav-icon"></span> Dashboard</a>
+      <a href="vendors.html"              class="nav-item"><span class="nav-icon"></span> Vendors</a>
+      <a href="stalls.html"               class="nav-item"><span class="nav-icon"></span> Stalls</a>
+      <a href="payments.html"             class="nav-item active"><span class="nav-icon"></span> Payment &amp; Billing</a>
+      <a href="reports.html"              class="nav-item"><span class="nav-icon"></span> Reports</a>
+      <a href="collector.html"            class="nav-item"><span class="nav-icon"></span> Collectors</a>
+      <a href="#" class="nav-item nav-logout" onclick="logout()"><span class="nav-icon"></span> Logout</a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left"><h1 class="page-title">Payment &amp; Billing</h1><span class="breadcrumb">Home / Payments</span></div>
+      <div class="topbar-right"><span class="user-info" id="userInfo"></span><span class="date-today" id="dateToday"></span></div>
+    </div>
+
+    <!-- TAB BAR -->
+    <div style="padding:16px 28px 0;display:flex;gap:4px;border-bottom:2px solid #dde3ea;background:#fff;">
+      <button id="tabBills"    class="tab-btn tab-active" onclick="switchTab('bills')">Bills</button>
+      <button id="tabPayments" class="tab-btn" onclick="switchTab('payments')">Payment Records</button>
+    </div>
+
+    <!-- BILLS TAB -->
+    <div id="panelBills">
+      <div class="controls-bar">
+        <div class="search-group">
+          <input type="text" id="billSearch" class="search-input" placeholder="Search by vendor or stall…" oninput="filterBills()" />
+        </div>
+        <div style="display:flex;gap:8px;">
+          <select id="billStatusFilter" class="form-input" style="width:160px;" onchange="filterBills()">
+            <option value="">All Statuses</option>
+            <option value="Paid">Paid</option>
+            <option value="Unpaid">Unpaid</option>
+            <option value="Partially Paid">Partially Paid</option>
+          </select>
+          <button class="btn-primary" onclick="openAddBill()">+ Generate Bill</button>
+        </div>
+      </div>
+      <div class="table-section" style="margin:8px 28px 28px;">
+        <div class="table-header">
+          <h2 class="table-title">Bill List</h2>
+          <span class="table-note" id="billCount">Showing 0 records</span>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead><tr><th>Bill ID</th><th>Vendor</th><th>Stall</th><th>Period</th><th>Due Date</th><th>Amount</th><th>Paid</th><th>Balance</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="billTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAYMENTS TAB -->
+    <div id="panelPayments" style="display:none;">
+      <div class="controls-bar">
+        <div class="search-group">
+          <input type="text" id="paySearch" class="search-input" placeholder="Search by ref, stall, or vendor…" oninput="filterPayments()" />
+        </div>
+        <button class="btn-primary" onclick="openRecordPayment()">+ Record Payment</button>
+      </div>
+      <div class="table-section" style="margin:8px 28px 28px;">
+        <div class="table-header">
+          <h2 class="table-title">Payment Records</h2>
+          <span class="table-note" id="payCount">Showing 0 records</span>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead><tr><th>Ref #</th><th>Vendor</th><th>Stall</th><th>Amount</th><th>Method</th><th>Collector</th><th>Date</th><th>Action</th></tr></thead>
+            <tbody id="payTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- BILL FORM MODAL -->
+<div class="modal-overlay" id="billFormModal" style="display:none;">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header"><h3 id="billFormTitle">Generate Bill</h3><button class="modal-close" onclick="closeModal('billFormModal')">✕</button></div>
+    <div class="modal-body">
+      <p class="form-error" id="billFormError"></p>
+      <input type="hidden" id="billEditId" />
+      <div class="form-group"><label>Vendor <span class="required">*</span></label>
+        <select id="fBVendor" class="form-input" onchange="onBillVendorChange()"><option value="">— Select Vendor —</option></select>
+      </div>
+      <div class="form-group"><label>Stall</label><input type="text" id="fBStall" class="form-input" readonly /></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px;">
+        <div class="form-group"><label>Billing Period (YYYY-MM) <span class="required">*</span></label><input type="month" id="fBPeriod" class="form-input" /></div>
+        <div class="form-group"><label>Due Date <span class="required">*</span></label><input type="date" id="fBDue" class="form-input" /></div>
+        <div class="form-group"><label>Amount (₱) <span class="required">*</span></label><input type="number" id="fBAmount" class="form-input" min="0" /></div>
+        <div class="form-group"><label>Status</label>
+          <select id="fBStatus" class="form-input">
+            <option value="Unpaid">Unpaid</option><option value="Partially Paid">Partially Paid</option><option value="Paid">Paid</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="saveBill()">Save Bill</button>
+      <button class="btn-secondary" onclick="closeModal('billFormModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- RECORD PAYMENT MODAL -->
+<div class="modal-overlay" id="payFormModal" style="display:none;">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header"><h3>Record Payment</h3><button class="modal-close" onclick="closeModal('payFormModal')">✕</button></div>
+    <div class="modal-body">
+      <p class="form-error" id="payFormError"></p>
+      <div class="form-group"><label>Bill / Vendor <span class="required">*</span></label>
+        <select id="fPBill" class="form-input" onchange="onPayBillChange()"><option value="">— Select Bill —</option></select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px;">
+        <div class="form-group"><label>Amount Paid (₱) <span class="required">*</span></label><input type="number" id="fPAmount" class="form-input" min="1" /></div>
+        <div class="form-group"><label>Payment Method <span class="required">*</span></label>
+          <select id="fPMethod" class="form-input">
+            <option value="Cash">Cash</option><option value="GCash">GCash</option><option value="Bank Transfer">Bank Transfer</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Reference Number</label><input type="text" id="fPRef" class="form-input" placeholder="e.g. REC-006" /></div>
+        <div class="form-group"><label>Collector <span class="required">*</span></label>
+          <select id="fPCollector" class="form-input"><option value="">— Select Collector —</option></select>
+        </div>
+        <div class="form-group"><label>Payment Date <span class="required">*</span></label><input type="date" id="fPDate" class="form-input" /></div>
+        <div class="form-group"><label>Time</label><input type="time" id="fPTime" class="form-input" /></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="savePayment()">Record Payment</button>
+      <button class="btn-secondary" onclick="closeModal('payFormModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- RECEIPT MODAL -->
+<div class="modal-overlay" id="receiptModal" style="display:none;">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header"><h3>Payment Receipt</h3><button class="modal-close" onclick="closeModal('receiptModal')">✕</button></div>
+    <div class="modal-body" id="receiptBody"></div>
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="window.print()">Print</button>
+      <button class="btn-secondary" onclick="closeModal('receiptModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="js/app.js"></script>
+<script>
+  requireAuth(['supervisor','collector']);
+
+  function getBills()      { return dbGet(KEYS.bills,      SEED_BILLS); }
+  function getPayments()   { return dbGet(KEYS.payments,   SEED_PAYMENTS); }
+  function getVendors()    { return dbGet(KEYS.vendors,    SEED_VENDORS); }
+  function getStalls()     { return dbGet(KEYS.stalls,     SEED_STALLS); }
+  function getCollectors() { return dbGet(KEYS.collectors, SEED_COLLECTORS); }
+
+  // Tab switching
+  function switchTab(tab) {
+    document.getElementById('panelBills').style.display    = tab==='bills'    ? '' : 'none';
+    document.getElementById('panelPayments').style.display = tab==='payments' ? '' : 'none';
+    document.getElementById('tabBills').classList.toggle('tab-active',    tab==='bills');
+    document.getElementById('tabPayments').classList.toggle('tab-active', tab==='payments');
+    if (tab==='bills')    renderBills(getBills());
+    if (tab==='payments') renderPayments(getPayments());
+  }
+
+  function statusBadge(s) {
+    return s==='Paid'?'badge-active': s==='Unpaid'?'badge-inactive':'badge-pending';
+  }
+
+  // ---- BILLS ----
+  function renderBills(list) {
+    var vendors = getVendors(); var stalls = getStalls();
+    var tb = '';
+    list.forEach(function(b){
+      var v  = vendors.find(function(x){ return x.id===b.vendorId; });
+      var st = stalls.find(function(x){ return x.id===b.stallId; });
+      var bal = b.amount - b.paid;
+      tb += '<tr>'+
+        '<td>'+escHtml(b.id)+'</td><td>'+(v?escHtml(v.name):'—')+'</td><td>'+(st?escHtml(st.number):'—')+'</td>'+
+        '<td>'+escHtml(b.period)+'</td><td>'+escHtml(b.dueDate)+'</td><td>₱'+b.amount+'</td><td>₱'+b.paid+'</td><td>₱'+bal+'</td>'+
+        '<td><span class="badge '+statusBadge(b.status)+'">'+escHtml(b.status)+'</span></td>'+
+        '<td class="action-cell">'+
+          '<button class="btn-view" onclick="openRecordPaymentForBill(\''+b.id+'\')">Pay</button>'+
+          '<button class="btn-delete" onclick="deleteBill(\''+b.id+'\')">Delete</button>'+
+        '</td></tr>';
+    });
+    document.getElementById('billTableBody').innerHTML = tb || '<tr><td colspan="10" style="text-align:center;color:#aaa;padding:20px;">No bills</td></tr>';
+    document.getElementById('billCount').textContent = 'Showing '+list.length+' record'+(list.length!==1?'s':'');
+  }
+
+  function filterBills() {
+    var q = document.getElementById('billSearch').value.toLowerCase();
+    var sf = document.getElementById('billStatusFilter').value;
+    var vendors = getVendors(); var stalls = getStalls();
+    var list = getBills().filter(function(b){
+      var v = vendors.find(function(x){ return x.id===b.vendorId; });
+      var s = stalls.find(function(x){ return x.id===b.stallId; });
+      var txt = ((v?v.name:'')+' '+(s?s.number:'')).toLowerCase();
+      return txt.includes(q) && (!sf || b.status===sf);
+    });
+    renderBills(list);
+  }
+
+  function openAddBill() {
+    document.getElementById('billFormTitle').textContent = 'Generate Bill';
+    document.getElementById('billEditId').value = '';
+    document.getElementById('billFormError').textContent = '';
+    document.getElementById('fBStall').value = '';
+    document.getElementById('fBPeriod').value = '';
+    document.getElementById('fBDue').value = new Date().toISOString().slice(0,10);
+    document.getElementById('fBAmount').value = '';
+    setSelect('fBStatus','Unpaid');
+    // populate vendor dropdown
+    var sel = document.getElementById('fBVendor');
+    sel.innerHTML = '<option value="">— Select Vendor —</option>';
+    getVendors().filter(function(v){ return v.status==='Active'; }).forEach(function(v){
+      sel.innerHTML += '<option value="'+v.id+'">'+escHtml(v.name)+'</option>';
+    });
+    showModal('billFormModal');
+  }
+
+  function onBillVendorChange() {
+    var vid = document.getElementById('fBVendor').value;
+    var v = getVendors().find(function(x){ return x.id===vid; });
+    var s = v && v.stallId ? getStalls().find(function(x){ return x.id===v.stallId; }) : null;
+    document.getElementById('fBStall').value = s ? s.number+' – '+s.section : '';
+  }
+
+  function saveBill() {
+    var vid    = document.getElementById('fBVendor').value;
+    var period = document.getElementById('fBPeriod').value;
+    var due    = document.getElementById('fBDue').value;
+    var amt    = parseFloat(document.getElementById('fBAmount').value);
+    var status = document.getElementById('fBStatus').value;
+    var errEl  = document.getElementById('billFormError');
+    errEl.textContent = '';
+
+    if (!vid)        { errEl.textContent='Select a vendor.'; return; }
+    if (!period)     { errEl.textContent='Billing period is required.'; return; }
+    if (!due)        { errEl.textContent='Due date is required.'; return; }
+    if (isNaN(amt))  { errEl.textContent='Amount must be a number.'; return; }
+
+    var v     = getVendors().find(function(x){ return x.id===vid; });
+    var bills = getBills();
+    var newB  = { id: nextAutoId('BL',bills), vendorId: vid, stallId: v?v.stallId:null, period: period, dueDate: due, amount: amt, paid: 0, status: status, createdAt: new Date().toISOString().slice(0,10) };
+    bills.push(newB);
+    dbSet(KEYS.bills, bills);
+    closeModal('billFormModal');
+    renderBills(bills);
+    showToast('Bill generated.','success');
+  }
+
+  function deleteBill(id) {
+    if (!confirm('Delete this bill?')) return;
+    dbSet(KEYS.bills, getBills().filter(function(b){ return b.id!==id; }));
+    renderBills(getBills());
+    showToast('Bill deleted.','error');
+  }
+
+  // ---- PAYMENTS ----
+  function renderPayments(list) {
+    var vendors=getVendors(); var stalls=getStalls(); var cols=getCollectors();
+    var tb = '';
+    list.forEach(function(p){
+      var v  = vendors.find(function(x){ return x.id===p.vendorId; });
+      var c  = cols.find(function(x){ return x.id===p.collectorId; });
+      tb += '<tr>'+
+        '<td>'+escHtml(p.ref)+'</td><td>'+(v?escHtml(v.name):'—')+'</td><td>'+escHtml(p.stall)+'</td>'+
+        '<td>₱'+p.amount+'</td><td>'+escHtml(p.method)+'</td><td>'+(c?escHtml(c.name):'—')+'</td>'+
+        '<td>'+escHtml(p.date)+'</td>'+
+        '<td><button class="btn-view" onclick="viewReceipt(\''+p.id+'\')">Receipt</button></td>'+
+        '</tr>';
+    });
+    document.getElementById('payTableBody').innerHTML = tb || '<tr><td colspan="8" style="text-align:center;color:#aaa;padding:20px;">No payments</td></tr>';
+    document.getElementById('payCount').textContent = 'Showing '+list.length+' record'+(list.length!==1?'s':'');
+  }
+
+  function filterPayments() {
+    var q = document.getElementById('paySearch').value.toLowerCase();
+    var vendors = getVendors();
+    var list = getPayments().filter(function(p){
+      var v = vendors.find(function(x){ return x.id===p.vendorId; });
+      return (p.ref+' '+(v?v.name:'')+' '+p.stall).toLowerCase().includes(q);
+    });
+    renderPayments(list);
+  }
+
+  function openRecordPayment() {
+    document.getElementById('payFormError').textContent = '';
+    document.getElementById('fPAmount').value = '';
+    document.getElementById('fPRef').value = '';
+    document.getElementById('fPDate').value = new Date().toISOString().slice(0,10);
+    document.getElementById('fPTime').value = '';
+
+    // Populate unpaid bills
+    var billSel = document.getElementById('fPBill');
+    billSel.innerHTML = '<option value="">— Select Bill —</option>';
+    var vendors = getVendors();
+    getBills().filter(function(b){ return b.status!=='Paid'; }).forEach(function(b){
+      var v = vendors.find(function(x){ return x.id===b.vendorId; });
+      billSel.innerHTML += '<option value="'+b.id+'">'+(v?v.name:'?')+' – '+b.period+' (Balance: ₱'+(b.amount-b.paid)+')</option>';
+    });
+
+    // Populate collectors
+    var colSel = document.getElementById('fPCollector');
+    colSel.innerHTML = '<option value="">— Select Collector —</option>';
+    getCollectors().filter(function(c){ return c.status==='Active'; }).forEach(function(c){
+      colSel.innerHTML += '<option value="'+c.id+'">'+escHtml(c.name)+'</option>';
+    });
+
+    setSelect('fPMethod','Cash');
+    showModal('payFormModal');
+  }
+
+  function openRecordPaymentForBill(billId) {
+    switchTab('payments');
+    openRecordPayment();
+    setSelect('fPBill', billId);
+    onPayBillChange();
+  }
+
+  function onPayBillChange() {
+    var bid = document.getElementById('fPBill').value;
+    if (!bid) return;
+    var b = getBills().find(function(x){ return x.id===bid; });
+    if (b) document.getElementById('fPAmount').value = (b.amount - b.paid);
+  }
+
+  function savePayment() {
+    var billId  = document.getElementById('fPBill').value;
+    var amt     = parseFloat(document.getElementById('fPAmount').value);
+    var method  = document.getElementById('fPMethod').value;
+    var ref     = document.getElementById('fPRef').value.trim() || ('REC-'+Date.now());
+    var colId   = document.getElementById('fPCollector').value;
+    var date    = document.getElementById('fPDate').value;
+    var time    = document.getElementById('fPTime').value || new Date().toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'});
+    var errEl   = document.getElementById('payFormError');
+    errEl.textContent = '';
+
+    if (!billId)    { errEl.textContent='Select a bill.'; return; }
+    if (isNaN(amt) || amt<=0) { errEl.textContent='Enter a valid amount.'; return; }
+    if (!colId)     { errEl.textContent='Select a collector.'; return; }
+    if (!date)      { errEl.textContent='Payment date is required.'; return; }
+
+    var bills = getBills();
+    var bIdx  = bills.findIndex(function(b){ return b.id===billId; });
+    if (bIdx===-1) return;
+
+    var bill    = bills[bIdx];
+    var vendors = getVendors();
+    var stalls  = getStalls();
+    var v  = vendors.find(function(x){ return x.id===bill.vendorId; });
+    var st = stalls.find(function(x){ return x.id===bill.stallId; });
+
+    // Update bill
+    bill.paid += amt;
+    if (bill.paid >= bill.amount) { bill.paid = bill.amount; bill.status = 'Paid'; }
+    else bill.status = 'Partially Paid';
+    bills[bIdx] = bill;
+    dbSet(KEYS.bills, bills);
+
+    // Create payment record
+    var payments = getPayments();
+    var newP = { id: nextAutoId('PAY',payments), billId: billId, vendorId: bill.vendorId, collectorId: colId, amount: amt, method: method, ref: ref, date: date, time: time, stall: st?st.number:'—' };
+    payments.push(newP);
+    dbSet(KEYS.payments, payments);
+
+    closeModal('payFormModal');
+    renderPayments(payments);
+    showToast('Payment recorded successfully.','success');
+
+    // Show receipt
+    viewReceipt(newP.id);
+  }
+
+  function viewReceipt(payId) {
+    var p  = getPayments().find(function(x){ return x.id===payId; });
+    if (!p) return;
+    var v  = getVendors().find(function(x){ return x.id===p.vendorId; });
+    var c  = getCollectors().find(function(x){ return x.id===p.collectorId; });
+    document.getElementById('receiptBody').innerHTML =
+      '<div style="text-align:center;margin-bottom:16px;"><strong style="font-size:15px;">OFFICIAL RECEIPT</strong><br>' +
+      '<span style="font-size:12px;color:#888;">Public Market Stall Vendor System<br>Minglanilla Public Market</span></div>' +
+      dr('Reference #', p.ref)+dr('Date', p.date+' '+p.time)+
+      dr('Vendor',   v?v.name:'—')+dr('Stall', p.stall)+
+      dr('Amount Paid','₱'+p.amount)+dr('Method', p.method)+
+      dr('Collector', c?c.name:'—')+
+      '<div style="text-align:center;margin-top:16px;padding-top:12px;border-top:1px dashed #ccc;font-size:11px;color:#aaa;">Thank you for your payment.</div>';
+    showModal('receiptModal');
+  }
+
+  function dr(label,val){ return '<div class="staff-detail-row"><span class="staff-detail-label">'+label+'</span><span class="staff-detail-value">'+escHtml(String(val))+'</span></div>'; }
+
+  document.addEventListener('DOMContentLoaded', function(){ renderBills(getBills()); });
+</script>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Supervisor Dashboard – PMSVS</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="system-page">
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <span class="brand-icon"></span>
+      <span class="sidebar-title">Market Vendor</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="supervisor-dashboard.html" class="nav-item active"><span class="nav-icon"></span> Dashboard</a>
+      <a href="vendors.html"              class="nav-item"><span class="nav-icon"></span> Vendors</a>
+      <a href="stalls.html"               class="nav-item"><span class="nav-icon"></span> Stalls</a>
+      <a href="payments.html"             class="nav-item"><span class="nav-icon"></span> Payment &amp; Billing</a>
+      <a href="reports.html"              class="nav-item"><span class="nav-icon"></span> Reports</a>
+      <a href="collector.html"            class="nav-item"><span class="nav-icon"></span> Collectors</a>
+      <a href="#" class="nav-item nav-logout" onclick="logout()"><span class="nav-icon"></span> Logout</a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">Supervisor Dashboard</h1>
+        <span class="breadcrumb">Home / Dashboard</span>
+      </div>
+      <div class="topbar-right">
+        <span class="user-info" id="userInfo"></span>
+        <span class="date-today" id="dateToday"></span>
+      </div>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="cards-grid" id="statsGrid"></div>
+
+    <!-- STALL STATUS + RECENT COLLECTIONS -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 20px;padding:0 28px 28px;">
+
+      <div class="table-section" style="margin:20px 0 0;">
+        <div class="table-header">
+          <h2 class="table-title">Stall Status</h2>
+          <a href="stalls.html" style="font-size:12px;color:#0277bd;">View All</a>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead><tr><th>Stall</th><th>Section</th><th>Vendor</th><th>Status</th></tr></thead>
+            <tbody id="stallsPreview"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="table-section" style="margin:20px 0 0;">
+        <div class="table-header">
+          <h2 class="table-title">Recent Collections</h2>
+          <a href="payments.html" style="font-size:12px;color:#0277bd;">View All</a>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead><tr><th>Ref</th><th>Stall</th><th>Amount</th><th>Date</th></tr></thead>
+            <tbody id="collectionsPreview"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  var session = requireAuth(['supervisor']);
+
+  document.addEventListener('DOMContentLoaded', function(){
+    var stalls   = dbGet(KEYS.stalls,   SEED_STALLS);
+    var vendors  = dbGet(KEYS.vendors,  SEED_VENDORS);
+    var payments = dbGet(KEYS.payments, SEED_PAYMENTS);
+    var bills    = dbGet(KEYS.bills,    SEED_BILLS);
+
+    var totalStalls    = stalls.length;
+    var occupied       = stalls.filter(function(s){ return s.status==='Occupied'; }).length;
+    var vacant         = stalls.filter(function(s){ return s.status==='Vacant'; }).length;
+    var maintenance    = stalls.filter(function(s){ return s.status==='Maintenance'; }).length;
+    var totalVendors   = vendors.filter(function(v){ return v.status==='Active'; }).length;
+    var totalCollected = payments.reduce(function(sum,p){ return sum+p.amount; },0);
+    var outstanding    = bills.reduce(function(sum,b){ return sum+(b.amount-b.paid); },0);
+
+    // Cards
+    document.getElementById('statsGrid').innerHTML = [
+      card('Total Stalls',       totalStalls,    'All sections combined',   ''),
+      card('Occupied Stalls',    occupied,        occupied+'/'+ totalStalls+' stalls', 'card-green'),
+      card('Vacant Stalls',      vacant,          maintenance+' under maintenance',    'card-orange'),
+      card('Active Vendors',     totalVendors,    'Registered vendors',                'card-blue'),
+      card('Total Collections',  '₱'+totalCollected.toLocaleString(), 'All time',     'card-green'),
+      card('Outstanding Balance','₱'+outstanding.toLocaleString(),    'Unpaid bills', 'card-orange')
+    ].join('');
+
+    // Stalls preview (first 8)
+    var sb = '';
+    stalls.slice(0,8).forEach(function(s){
+      var vnd = s.vendorId ? vendors.find(function(v){ return v.id===s.vendorId; }) : null;
+      var cls = s.status==='Occupied' ? 'badge-occupied' : s.status==='Vacant' ? 'badge-vacant' : 'badge-maintenance';
+      sb += '<tr><td>'+escHtml(s.number)+'</td><td>'+escHtml(s.section)+'</td><td>'+(vnd?escHtml(vnd.name):'—')+'</td><td><span class="badge '+cls+'">'+escHtml(s.status)+'</span></td></tr>';
+    });
+    document.getElementById('stallsPreview').innerHTML = sb || '<tr><td colspan="4" style="text-align:center;color:#aaa;">No stalls</td></tr>';
+
+    // Collections preview (last 6)
+    var pb = '';
+    payments.slice(-6).reverse().forEach(function(p){
+      pb += '<tr><td>'+escHtml(p.ref)+'</td><td>'+escHtml(p.stall)+'</td><td>₱'+p.amount+'</td><td>'+escHtml(p.date)+'</td></tr>';
+    });
+    document.getElementById('collectionsPreview').innerHTML = pb || '<tr><td colspan="4" style="text-align:center;color:#aaa;">No payments</td></tr>';
+  });
+
+  function card(label, val, sub, cls) {
+    return '<div class="card '+cls+'"><div class="card-label">'+label+'</div><div class="card-value">'+val+'</div><div class="card-sub">'+sub+'</div></div>';
+  }
+</script>
+</body>
+</html>
