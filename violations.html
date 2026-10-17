@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Violations &amp; Penalties – PMSVS</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="system-page">
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo"><i class="ri-store-2-line"></i></div>
+      <div class="sidebar-brand">
+        <span class="sidebar-title">MarketVend</span>
+        <span class="sidebar-sub">Supervisor</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="supervisor-dashboard.html" class="nav-item"><i class="ri-dashboard-line nav-icon"></i> Dashboard</a>
+      <div class="nav-divider"></div>
+      <span class="sidebar-section-label">Management</span>
+      <a href="vendors.html"    class="nav-item"><i class="ri-group-line nav-icon"></i> Vendors</a>
+      <a href="stalls.html"     class="nav-item"><i class="ri-store-line nav-icon"></i> Stalls</a>
+      <a href="payments.html"   class="nav-item"><i class="ri-bank-card-line nav-icon"></i> Payment &amp; Billing</a>
+      <a href="utilities.html"  class="nav-item"><i class="ri-flashlight-line nav-icon"></i> Utilities</a>
+      <a href="violations.html" class="nav-item active"><i class="ri-error-warning-line nav-icon"></i> Violations</a>
+      <div class="nav-divider"></div>
+      <span class="sidebar-section-label">Staff</span>
+      <a href="collector.html"  class="nav-item"><i class="ri-user-star-line nav-icon"></i> Collectors</a>
+      <a href="reports.html"    class="nav-item"><i class="ri-bar-chart-line nav-icon"></i> Reports</a>
+      <div class="nav-divider"></div>
+      <a href="#" class="nav-item nav-logout" onclick="logout()"><i class="ri-logout-box-line nav-icon"></i> Logout</a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">Violations &amp; Penalties</h1>
+        <span class="breadcrumb">Home / Violations</span>
+      </div>
+      <div class="topbar-right">
+        <div class="user-badge">
+          <div class="user-avatar">S</div>
+          <span class="user-info" id="userInfo">Supervisor</span>
+        </div>
+        <span class="date-today" id="dateToday"></span>
+      </div>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="cards-grid" id="violStatsGrid"></div>
+
+    <!-- CONTROLS -->
+    <div class="controls-bar">
+      <div class="search-group">
+        <input type="text" id="violSearch" class="search-input" placeholder="Search by vendor, stall, or violation…" oninput="filterViolations()" />
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <select id="violStatusFilter" class="form-input" style="width:150px;" onchange="filterViolations()">
+          <option value="">All Statuses</option>
+          <option value="Open">Open</option>
+          <option value="Resolved">Resolved</option>
+          <option value="Under Review">Under Review</option>
+        </select>
+        <select id="violSeverityFilter" class="form-input" style="width:140px;" onchange="filterViolations()">
+          <option value="">All Severity</option>
+          <option value="Minor">Minor</option>
+          <option value="Moderate">Moderate</option>
+          <option value="Major">Major</option>
+        </select>
+        <button class="btn-primary" onclick="openAddViolation()">+ Log Violation</button>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-section" style="margin:8px 28px 28px;">
+      <div class="table-header">
+        <h2 class="table-title">Violations Log</h2>
+        <span class="table-note" id="violCount">Showing 0 records</span>
+      </div>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Violation ID</th>
+              <th>Vendor</th>
+              <th>Stall</th>
+              <th>Violation</th>
+              <th>Severity</th>
+              <th>Fine (₱)</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="violTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ADD/EDIT VIOLATION MODAL -->
+<div class="modal-overlay" id="violFormModal" style="display:none;">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <h3 id="violFormTitle">Log Violation</h3>
+      <button class="modal-close" onclick="closeModal('violFormModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="form-error" id="violFormError"></p>
+      <input type="hidden" id="violEditId" />
+      <div class="form-group">
+        <label>Vendor <span class="required">*</span></label>
+        <select id="fViolVendor" class="form-input" onchange="onViolVendorChange()">
+          <option value="">— Select Vendor —</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Stall</label>
+        <input type="text" id="fViolStall" class="form-input" readonly />
+      </div>
+      <div class="form-group">
+        <label>Violation Type <span class="required">*</span></label>
+        <select id="fViolType" class="form-input">
+          <option value="Unsanitary Stall">Unsanitary Stall</option>
+          <option value="Unauthorized Extension">Unauthorized Extension</option>
+          <option value="Late Payment">Late Payment</option>
+          <option value="Noise Violation">Noise Violation</option>
+          <option value="Illegal Subletting">Illegal Subletting</option>
+          <option value="Operating Outside Hours">Operating Outside Hours</option>
+          <option value="Expired Permits">Expired Permits</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="fViolDesc" class="form-input" rows="2" style="resize:vertical;" placeholder="Describe the violation…"></textarea>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label>Severity <span class="required">*</span></label>
+          <select id="fViolSeverity" class="form-input">
+            <option value="Minor">Minor</option>
+            <option value="Moderate">Moderate</option>
+            <option value="Major">Major</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Fine Amount (₱) <span class="required">*</span></label>
+          <input type="number" id="fViolFine" class="form-input" min="0" placeholder="0" />
+        </div>
+        <div class="form-group">
+          <label>Date <span class="required">*</span></label>
+          <input type="date" id="fViolDate" class="form-input" />
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="fViolStatus" class="form-input">
+            <option value="Open">Open</option>
+            <option value="Under Review">Under Review</option>
+            <option value="Resolved">Resolved</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Recorded By</label>
+        <input type="text" id="fViolRecordedBy" class="form-input" placeholder="Supervisor name" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="saveViolation()">Save Violation</button>
+      <button class="btn-secondary" onclick="closeModal('violFormModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW MODAL -->
+<div class="modal-overlay" id="violViewModal" style="display:none;">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <h3>Violation Details</h3>
+      <button class="modal-close" onclick="closeModal('violViewModal')">✕</button>
+    </div>
+    <div class="modal-body" id="violViewBody"></div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('violViewModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESOLVE MODAL -->
+<div class="modal-overlay" id="violResolveModal" style="display:none;">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header">
+      <h3>Resolve Violation</h3>
+      <button class="modal-close" onclick="closeModal('violResolveModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="violResolveMsg" style="font-size:14px;color:var(--text-muted);margin-bottom:16px;line-height:1.6;"></p>
+      <div class="form-group">
+        <label>Resolution Notes</label>
+        <textarea id="fViolResolveNote" class="form-input" rows="3" style="resize:vertical;" placeholder="Describe how this was resolved…"></textarea>
+      </div>
+      <input type="hidden" id="violResolveId" />
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="confirmResolve()">Mark Resolved</button>
+      <button class="btn-secondary" onclick="closeModal('violResolveModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM -->
+<div class="modal-overlay" id="violDeleteModal" style="display:none;">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header">
+      <h3>Delete Violation</h3>
+      <button class="modal-close" onclick="closeModal('violDeleteModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="violDeleteMsg" style="font-size:14px;color:var(--text-main);line-height:1.6;"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-delete-confirm" onclick="confirmDeleteViol()">Yes, Delete</button>
+      <button class="btn-secondary" onclick="closeModal('violDeleteModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="js/app.js"></script>
+<script>
+  requireAuth(['supervisor']);
+
+  // Seed & key setup
+  KEYS.violations = KEYS.violations || 'pmsvs_violations';
+  if (!window.SEED_VIOLATIONS) {
+    window.SEED_VIOLATIONS = [
+      { id:'VIO-001', vendorId:'VND-002', stallId:'STL-002', type:'Unsanitary Stall',       description:'Stall found with accumulated garbage during inspection.', severity:'Minor',    fine:500,  finePaid:0,   status:'Open',         date:'2026-10-05', recordedBy:'Supervisor Perez', resolveNote:'' },
+      { id:'VIO-002', vendorId:'VND-003', stallId:'STL-003', type:'Unauthorized Extension', description:'Vendor extended goods beyond assigned stall boundary.',   severity:'Moderate', fine:1000, finePaid:1000,status:'Resolved',     date:'2026-09-20', recordedBy:'Supervisor Perez', resolveNote:'Vendor removed extension and paid fine.' },
+      { id:'VIO-003', vendorId:'VND-005', stallId:'STL-007', type:'Late Payment',           description:'Monthly rental not paid within the grace period.',        severity:'Minor',    fine:200,  finePaid:0,   status:'Open',         date:'2026-10-10', recordedBy:'Supervisor Perez', resolveNote:'' },
+      { id:'VIO-004', vendorId:'VND-001', stallId:'STL-001', type:'Noise Violation',        description:'Vendor using amplified speakers during restricted hours.', severity:'Moderate', fine:750,  finePaid:0,   status:'Under Review', date:'2026-10-12', recordedBy:'Supervisor Perez', resolveNote:'' },
+      { id:'VIO-005', vendorId:'VND-004', stallId:'STL-005', type:'Expired Permits',        description:'Business permit expired as of Oct 1, 2026.',              severity:'Major',    fine:2000, finePaid:0,   status:'Open',         date:'2026-10-15', recordedBy:'Supervisor Perez', resolveNote:'' }
+    ];
+  }
+
+  var pendingDeleteViolId = null;
+
+  function getViols()   { return dbGet(KEYS.violations, SEED_VIOLATIONS); }
+  function getVendors() { return dbGet(KEYS.vendors, SEED_VENDORS); }
+  function getStalls()  { return dbGet(KEYS.stalls,  SEED_STALLS); }
+
+  // ---------- STATS ----------
+  function renderStats() {
+    var viols = getViols();
+    var open   = viols.filter(function(v){ return v.status==='Open'; }).length;
+    var review = viols.filter(function(v){ return v.status==='Under Review'; }).length;
+    var resolved = viols.filter(function(v){ return v.status==='Resolved'; }).length;
+    var totalFines = viols.reduce(function(s,v){ return s+v.fine; },0);
+    var unpaidFines = viols.reduce(function(s,v){ return s+(v.fine-v.finePaid); },0);
+
+    document.getElementById('violStatsGrid').innerHTML = [
+      '<div class="card card-orange"><i class="ri-alert-line card-icon"></i><div class="card-label">Open Violations</div><div class="card-value">'+open+'</div><div class="card-sub">Need action</div></div>',
+      '<div class="card card-blue"><i class="ri-search-line card-icon"></i><div class="card-label">Under Review</div><div class="card-value">'+review+'</div><div class="card-sub">Being investigated</div></div>',
+      '<div class="card card-green"><i class="ri-checkbox-circle-line card-icon"></i><div class="card-label">Resolved</div><div class="card-value">'+resolved+'</div><div class="card-sub">Closed violations</div></div>',
+      '<div class="card card-red"><i class="ri-refund-line card-icon"></i><div class="card-label">Unpaid Fines</div><div class="card-value">&#8369;'+unpaidFines.toLocaleString()+'</div><div class="card-sub">Outstanding penalties</div></div>',
+      '<div class="card"><i class="ri-money-dollar-circle-line card-icon"></i><div class="card-label">Total Fines Issued</div><div class="card-value">&#8369;'+totalFines.toLocaleString()+'</div><div class="card-sub">All time</div></div>'
+    ].join('');
+  }
+
+  // ---------- RENDER ----------
+  function severityBadge(s) {
+    return s==='Minor'?'badge-active':s==='Moderate'?'badge-pending':'badge-inactive';
+  }
+
+  function statusBadge2(s) {
+    return s==='Resolved'?'badge-active':s==='Open'?'badge-inactive':'badge-pending';
+  }
+
+  function renderViolations(list) {
+    var vendors = getVendors(); var stalls = getStalls();
+    var tb = '';
+    list.forEach(function(v){
+      var vnd = vendors.find(function(x){ return x.id===v.vendorId; });
+      var st  = stalls.find(function(x){ return x.id===v.stallId; });
+      tb += '<tr>'+
+        '<td>'+escHtml(v.id)+'</td>'+
+        '<td>'+(vnd?escHtml(vnd.name):'—')+'</td>'+
+        '<td>'+(st?escHtml(st.number):'—')+'</td>'+
+        '<td>'+escHtml(v.type)+'</td>'+
+        '<td><span class="badge '+severityBadge(v.severity)+'">'+escHtml(v.severity)+'</span></td>'+
+        '<td>₱'+v.fine.toLocaleString()+'</td>'+
+        '<td>'+escHtml(v.date)+'</td>'+
+        '<td><span class="badge '+statusBadge2(v.status)+'">'+escHtml(v.status)+'</span></td>'+
+        '<td class="action-cell">'+
+          '<button class="btn-view" onclick="viewViolation(\''+v.id+'\')">View</button>'+
+          (v.status!=='Resolved'?'<button class="btn-edit" onclick="openResolve(\''+v.id+'\')">Resolve</button>':'')+
+          '<button class="btn-edit" onclick="openEditViolation(\''+v.id+'\')" style="background:var(--amber-soft);color:#92400e;border-color:#fcd34d;">Edit</button>'+
+          '<button class="btn-delete" onclick="openDeleteViol(\''+v.id+'\')">Del</button>'+
+        '</td></tr>';
+    });
+    document.getElementById('violTableBody').innerHTML = tb || '<tr><td colspan="9" style="text-align:center;color:#aaa;padding:16px;">No violations logged</td></tr>';
+    document.getElementById('violCount').textContent = 'Showing '+list.length+' record'+(list.length!==1?'s':'');
+  }
+
+  function filterViolations() {
+    var q  = document.getElementById('violSearch').value.toLowerCase();
+    var sf = document.getElementById('violStatusFilter').value;
+    var sv = document.getElementById('violSeverityFilter').value;
+    var vendors = getVendors(); var stalls = getStalls();
+    renderViolations(getViols().filter(function(v){
+      var vnd = vendors.find(function(x){ return x.id===v.vendorId; });
+      var st  = stalls.find(function(x){ return x.id===v.stallId; });
+      var txt = ((vnd?vnd.name:'')+(st?st.number:'')+v.type).toLowerCase();
+      return txt.includes(q) && (!sf||v.status===sf) && (!sv||v.severity===sv);
+    }));
+  }
+
+  // ---------- ADD ----------
+  function populateVendorDropdown() {
+    var sel = document.getElementById('fViolVendor');
+    sel.innerHTML = '<option value="">— Select Vendor —</option>';
+    getVendors().filter(function(v){ return v.status==='Active'; }).forEach(function(v){
+      sel.innerHTML += '<option value="'+v.id+'">'+escHtml(v.name)+'</option>';
+    });
+  }
+
+  function openAddViolation() {
+    document.getElementById('violFormTitle').textContent = 'Log Violation';
+    document.getElementById('violEditId').value = '';
+    document.getElementById('violFormError').textContent = '';
+    document.getElementById('fViolStall').value = '';
+    document.getElementById('fViolDesc').value  = '';
+    document.getElementById('fViolFine').value  = '';
+    document.getElementById('fViolRecordedBy').value = '';
+    document.getElementById('fViolDate').value  = new Date().toISOString().slice(0,10);
+    setSelect('fViolType','Unsanitary Stall');
+    setSelect('fViolSeverity','Minor');
+    setSelect('fViolStatus','Open');
+    populateVendorDropdown();
+    showModal('violFormModal');
+  }
+
+  function openEditViolation(id) {
+    var v = getViols().find(function(x){ return x.id===id; });
+    if (!v) return;
+    document.getElementById('violFormTitle').textContent = 'Edit Violation';
+    document.getElementById('violEditId').value = v.id;
+    document.getElementById('violFormError').textContent = '';
+    document.getElementById('fViolDesc').value  = v.description||'';
+    document.getElementById('fViolFine').value  = v.fine;
+    document.getElementById('fViolDate').value  = v.date;
+    document.getElementById('fViolRecordedBy').value = v.recordedBy||'';
+    populateVendorDropdown();
+    setSelect('fViolVendor', v.vendorId);
+    onViolVendorChange();
+    setSelect('fViolType',     v.type);
+    setSelect('fViolSeverity', v.severity);
+    setSelect('fViolStatus',   v.status);
+    showModal('violFormModal');
+  }
+
+  function onViolVendorChange() {
+    var vid = document.getElementById('fViolVendor').value;
+    var v   = getVendors().find(function(x){ return x.id===vid; });
+    var s   = v && v.stallId ? getStalls().find(function(x){ return x.id===v.stallId; }) : null;
+    document.getElementById('fViolStall').value = s ? s.number+' – '+s.section : '';
+  }
+
+  function saveViolation() {
+    var editId = document.getElementById('violEditId').value;
+    var vid    = document.getElementById('fViolVendor').value;
+    var type   = document.getElementById('fViolType').value;
+    var desc   = document.getElementById('fViolDesc').value.trim();
+    var sev    = document.getElementById('fViolSeverity').value;
+    var fine   = parseFloat(document.getElementById('fViolFine').value);
+    var date   = document.getElementById('fViolDate').value;
+    var status = document.getElementById('fViolStatus').value;
+    var recBy  = document.getElementById('fViolRecordedBy').value.trim();
+    var errEl  = document.getElementById('violFormError');
+    errEl.textContent = '';
+
+    if (!vid)        { errEl.textContent='Select a vendor.'; return; }
+    if (!type)       { errEl.textContent='Select a violation type.'; return; }
+    if (isNaN(fine)) { errEl.textContent='Enter a fine amount.'; return; }
+    if (!date)       { errEl.textContent='Date is required.'; return; }
+
+    var v = getVendors().find(function(x){ return x.id===vid; });
+    var viols = getViols();
+
+    if (editId) {
+      var idx = viols.findIndex(function(x){ return x.id===editId; });
+      if (idx===-1) return;
+      Object.assign(viols[idx], { vendorId:vid, stallId:v?v.stallId:null, type:type, description:desc, severity:sev, fine:fine, date:date, status:status, recordedBy:recBy });
+    } else {
+      viols.push({ id:nextAutoId('VIO',viols), vendorId:vid, stallId:v?v.stallId:null, type:type, description:desc, severity:sev, fine:fine, finePaid:0, date:date, status:status, recordedBy:recBy, resolveNote:'' });
+    }
+    dbSet(KEYS.violations, viols);
+    closeModal('violFormModal');
+    renderStats();
+    renderViolations(getViols());
+    showToast(editId ? 'Violation updated.' : 'Violation logged.','success');
+  }
+
+  // ---------- VIEW ----------
+  function viewViolation(id) {
+    var v = getViols().find(function(x){ return x.id===id; });
+    if (!v) return;
+    var vnd = getVendors().find(function(x){ return x.id===v.vendorId; });
+    var st  = getStalls().find(function(x){ return x.id===v.stallId; });
+    var sc  = severityBadge(v.severity);
+    var stc = statusBadge2(v.status);
+    document.getElementById('violViewBody').innerHTML =
+      dr('Violation ID', v.id)+dr('Vendor', vnd?vnd.name:'—')+dr('Stall', st?st.number:'—')+
+      dr('Type', v.type)+dr('Description', v.description||'—')+
+      '<div class="staff-detail-row"><span class="staff-detail-label">Severity</span><span class="staff-detail-value"><span class="badge '+sc+'">'+escHtml(v.severity)+'</span></span></div>'+
+      dr('Fine Issued', '₱'+v.fine.toLocaleString())+dr('Fine Paid', '₱'+(v.finePaid||0).toLocaleString())+
+      dr('Date', v.date)+dr('Recorded By', v.recordedBy||'—')+
+      '<div class="staff-detail-row"><span class="staff-detail-label">Status</span><span class="staff-detail-value"><span class="badge '+stc+'">'+escHtml(v.status)+'</span></span></div>'+
+      (v.resolveNote?dr('Resolution Note', v.resolveNote):'');
+    showModal('violViewModal');
+  }
+
+  // ---------- RESOLVE ----------
+  function openResolve(id) {
+    var v = getViols().find(function(x){ return x.id===id; });
+    if (!v) return;
+    var vnd = getVendors().find(function(x){ return x.id===v.vendorId; });
+    document.getElementById('violResolveId').value = id;
+    document.getElementById('violResolveMsg').textContent = 'Resolve violation "'+(v.type)+'"'+(vnd?' for '+vnd.name:'')+'. This marks the case as closed.';
+    document.getElementById('fViolResolveNote').value = '';
+    showModal('violResolveModal');
+  }
+
+  function confirmResolve() {
+    var id   = document.getElementById('violResolveId').value;
+    var note = document.getElementById('fViolResolveNote').value.trim();
+    var viols = getViols();
+    var idx = viols.findIndex(function(v){ return v.id===id; });
+    if (idx===-1) return;
+    viols[idx].status = 'Resolved';
+    viols[idx].resolveNote = note;
+    viols[idx].finePaid = viols[idx].fine; // mark fine as paid on resolution
+    dbSet(KEYS.violations, viols);
+    closeModal('violResolveModal');
+    renderStats();
+    renderViolations(getViols());
+    showToast('Violation marked as resolved.','success');
+  }
+
+  // ---------- DELETE ----------
+  function openDeleteViol(id) {
+    var v = getViols().find(function(x){ return x.id===id; });
+    pendingDeleteViolId = id;
+    document.getElementById('violDeleteMsg').textContent = 'Delete violation "'+(v?v.type:id)+'"? This cannot be undone.';
+    showModal('violDeleteModal');
+  }
+
+  function confirmDeleteViol() {
+    dbSet(KEYS.violations, getViols().filter(function(v){ return v.id!==pendingDeleteViolId; }));
+    closeModal('violDeleteModal');
+    renderStats();
+    renderViolations(getViols());
+    showToast('Violation deleted.','error');
+    pendingDeleteViolId = null;
+  }
+
+  function dr(label,val){ return '<div class="staff-detail-row"><span class="staff-detail-label">'+label+'</span><span class="staff-detail-value">'+escHtml(String(val))+'</span></div>'; }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    renderStats();
+    renderViolations(getViols());
+  });
+</script>
+</body>
+</html>

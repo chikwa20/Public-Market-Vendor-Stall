@@ -5,37 +5,55 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Public Market Stall Vendor System</title>
   <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /*
+      Hero background — save the aerial market photo
+      as  market-bg.jpg  in this same folder.
+    */
+    .hero {
+      background-image: url('image/Screenshot 2026-10-17 131502.png');
+      background-size: cover;
+      background-position: center 42%;
+      background-repeat: no-repeat;
+    }
+    .hero::before {
+      background: rgba(15, 61, 28, 0.65) !important;
+    }
+  </style>
 </head>
 <body class="landing-page">
 
   <nav class="navbar">
     <div class="nav-container">
       <div class="nav-brand">
-        <span class="brand-icon"></span>
-        <span class="brand-name">Public Market Stall Vendor</span>
+        <i class="ri-store-2-line brand-icon"></i>
+        <span class="brand-name">MarketVend</span>
       </div>
       <ul class="nav-links">
         <li><a href="#home">Home</a></li>
         <li><a href="#about">About</a></li>
         <li><a href="#features">Features</a></li>
-        <li><a href="login.html" class="btn-login">Login</a></li>
+        <li><a href="login.html" class="btn-login">Sign In</a></li>
       </ul>
     </div>
   </nav>
 
   <section class="hero" id="home">
     <div class="hero-content">
-      <h1>Public Market Stall Vendor System</h1>
+      <span class="hero-eyebrow">
+        <i class="ri-map-pin-line"></i> Minglanilla Public Market
+      </span>
+      <h1>Smarter market<br>management, together</h1>
       <p class="hero-subtitle">
-        A simple and efficient system for managing market vendors, stalls,
-        lease contracts, and daily collections.
+        Track vendors, stalls, leases, collections, utilities and violations — all in one place, built for the people who keep the market running.
       </p>
       <div class="hero-buttons">
-        <a href="#" class="btn-primary" onclick="goDashboard(event)">Go to Dashboard</a>
-        <a href="#about" class="btn-outline">Learn More</a>
+        <a href="#" class="btn-primary" onclick="goDashboard(event)">
+          <i class="ri-dashboard-line"></i> Open Dashboard
+        </a>
+        <a href="#about" class="btn-outline">See how it works</a>
       </div>
     </div>
-
   </section>
 
   <script src="js/app.js"></script>
@@ -44,39 +62,48 @@
       e.preventDefault();
       var session = getSession();
       if (!session) { window.location.href = 'login.html'; return; }
-      if (session.role === 'vendor') { window.location.href = 'login.html'; return; }
+      if (session.role === 'vendor') { window.location.href = 'vendor-dashboard.html'; return; }
       window.location.href = dashboardFor(session.role);
     }
   </script>
 
   <section class="about-section" id="about">
     <div class="container">
-      <h2 class="section-title">About the System</h2>
+      <span class="section-eyebrow">What we do</span>
+      <h2 class="section-title">Built for local market administrators</h2>
       <p class="section-desc">
-        The <strong>Public Market Stall Vendor System</strong> is developed to help
-        local government market administrators and supervisors manage their public
-        market operations more efficiently.
+        The <strong>Public Market Stall Vendor System</strong> helps local government units manage their public market operations with less paperwork and more clarity.
       </p>
       <div class="about-grid">
         <div class="about-card">
-          <div class="about-icon"></div>
+          <div class="about-icon"><i class="ri-store-line"></i></div>
           <h3>Stall Management</h3>
-          <p>Monitor all stalls in the market, track occupancy, and manage stall assignments for vendors.</p>
+          <p>Monitor all stalls in the market, track occupancy status, and manage stall assignments for registered vendors.</p>
         </div>
         <div class="about-card">
-          <div class="about-icon"></div>
-          <h3>Vendor Records</h3>
-          <p>Keep complete records of registered market vendors including their personal information and stall assignments.</p>
+          <div class="about-icon"><i class="ri-group-line"></i></div>
+          <h3>Vendor Profiles</h3>
+          <p>Keep complete records of market vendors including contact details, stall assignments, and lease information.</p>
         </div>
         <div class="about-card">
-          <div class="about-icon"></div>
+          <div class="about-icon"><i class="ri-file-text-line"></i></div>
           <h3>Lease Contracts</h3>
-          <p>Track lease agreements between the market administration and vendors, including contract dates and renewal status.</p>
+          <p>Track lease agreements, contract durations, and renewal deadlines for every vendor in the market.</p>
         </div>
         <div class="about-card">
-          <div class="about-icon"></div>
-          <h3>Daily Collections</h3>
-          <p>Record daily rental and fee collections from vendors, and generate collection reports for accounting purposes.</p>
+          <div class="about-icon"><i class="ri-coins-line"></i></div>
+          <h3>Fee Collections</h3>
+          <p>Record daily rental and market fee collections from vendors and generate reports for accounting.</p>
+        </div>
+        <div class="about-card">
+          <div class="about-icon"><i class="ri-flashlight-line"></i></div>
+          <h3>Utility Billing</h3>
+          <p>Calculate and collect water and electricity charges per vendor stall based on actual consumption.</p>
+        </div>
+        <div class="about-card">
+          <div class="about-icon"><i class="ri-error-warning-line"></i></div>
+          <h3>Violations Log</h3>
+          <p>Record market rule violations and track fines or penalties imposed on vendors for compliance monitoring.</p>
         </div>
       </div>
     </div>
@@ -84,40 +111,74 @@
 
   <section class="features-section" id="features">
     <div class="container">
-      <h2 class="section-title">System Features</h2>
-      <div class="features-list">
+      <span class="section-eyebrow">Core Features</span>
+      <h2 class="section-title">Everything the market needs</h2>
+      <div class="features-grid">
+
         <div class="feature-item">
-          <span class="feature-check">&#10003;</span>
-          <span>Manage vendor registrations and profiles</span>
+          <div class="feature-icon green"><i class="ri-store-line"></i></div>
+          <div class="feature-text">
+            <strong>Stall Assignment</strong>
+            <span>Assign physical stalls to vendors and track occupancy in real time</span>
+          </div>
         </div>
+
         <div class="feature-item">
-          <span class="feature-check">&#10003;</span>
-          <span>Track stall occupancy and availability</span>
+          <div class="feature-icon green"><i class="ri-user-line"></i></div>
+          <div class="feature-text">
+            <strong>Vendor &amp; Stall Profiling</strong>
+            <span>Maintain detailed records for every vendor and stall in the market</span>
+          </div>
         </div>
+
         <div class="feature-item">
-          <span class="feature-check">&#10003;</span>
-          <span>Monitor lease contract status and renewals</span>
+          <div class="feature-icon blue"><i class="ri-file-text-line"></i></div>
+          <div class="feature-text">
+            <strong>Lease Management</strong>
+            <span>Monitor lease agreements, start dates, end dates, and renewals</span>
+          </div>
         </div>
+
         <div class="feature-item">
-          <span class="feature-check">&#10003;</span>
-          <span>Record and track daily fee collections</span>
+          <div class="feature-icon green"><i class="ri-bank-card-line"></i></div>
+          <div class="feature-text">
+            <strong>Rental &amp; Fee Collection</strong>
+            <span>Bill vendors and record monthly rental and daily market fee payments</span>
+          </div>
         </div>
+
         <div class="feature-item">
-          <span class="feature-check">&#10003;</span>
-          <span>Manage market collector accounts</span>
+          <div class="feature-icon amber"><i class="ri-flashlight-line"></i></div>
+          <div class="feature-text">
+            <strong>Utility Billing</strong>
+            <span>Track water and electricity usage and generate utility bills per stall</span>
+          </div>
         </div>
+
         <div class="feature-item">
-          <span class="feature-check">&#10003;</span>
-          <span>Generate basic collection reports</span>
+          <div class="feature-icon red"><i class="ri-error-warning-line"></i></div>
+          <div class="feature-text">
+            <strong>Penalties &amp; Violations</strong>
+            <span>Log rule violations and track fines imposed on non-compliant vendors</span>
+          </div>
         </div>
+
         <div class="feature-item">
-          <span class="feature-check">&#10003;</span>
-          <span>View stall map and section layout</span>
+          <div class="feature-icon blue"><i class="ri-bar-chart-line"></i></div>
+          <div class="feature-text">
+            <strong>Reports &amp; Analytics</strong>
+            <span>Generate collection summaries, stall reports, and outstanding balances</span>
+          </div>
         </div>
+
         <div class="feature-item">
-          <span class="feature-check">&#10003;</span>
-          <span>Record utility billings and penalties</span>
+          <div class="feature-icon green"><i class="ri-receipt-line"></i></div>
+          <div class="feature-text">
+            <strong>Payment Receipts</strong>
+            <span>Instant printable receipts for every recorded payment transaction</span>
+          </div>
         </div>
+
       </div>
     </div>
   </section>
@@ -125,16 +186,16 @@
   <footer class="footer">
     <div class="container">
       <div class="footer-content">
-        <div class="footer-brand">
-          <span class="brand-icon"></span>
-          <span class="brand-name">Public Market Stall Vendor System</span>
+        <div>
+          <div class="nav-brand footer-brand-row">
+            <i class="ri-store-2-line brand-icon"></i>
+            <span class="brand-name">MarketVend System</span>
+          </div>
+          <p class="footer-desc">IT Capstone Project — Minglanilla Public Market</p>
         </div>
-        <p class="footer-desc">
-          A college IT project for managing public market operations.
-        </p>
       </div>
       <div class="footer-bottom">
-        <p>&copy; 2026 Public Market Stall Vendor System &mdash; IT Capstone Project</p>
+        <p>&copy; 2026 Public Market Stall Vendor System — IT Capstone Project</p>
       </div>
     </div>
   </footer>

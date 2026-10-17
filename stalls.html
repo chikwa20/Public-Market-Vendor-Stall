@@ -10,22 +10,56 @@
 <div class="layout">
 
   <aside class="sidebar">
-    <div class="sidebar-header"><span class="brand-icon"></span><span class="sidebar-title">Market Vendor</span></div>
+    <div class="sidebar-header">
+      <div class="sidebar-logo"><i class="ri-store-2-line"></i></div>
+      <div class="sidebar-brand">
+        <span class="sidebar-title">MarketVend</span>
+        <span class="sidebar-sub">Supervisor</span>
+      </div>
+    </div>
     <nav class="sidebar-nav">
-      <a href="supervisor-dashboard.html" class="nav-item"><span class="nav-icon"></span> Dashboard</a>
-      <a href="vendors.html"              class="nav-item"><span class="nav-icon"></span> Vendors</a>
-      <a href="stalls.html"               class="nav-item active"><span class="nav-icon"></span> Stalls</a>
-      <a href="payments.html"             class="nav-item"><span class="nav-icon"></span> Payment &amp; Billing</a>
-      <a href="reports.html"              class="nav-item"><span class="nav-icon"></span> Reports</a>
-      <a href="collector.html"            class="nav-item"><span class="nav-icon"></span> Collectors</a>
-      <a href="#" class="nav-item nav-logout" onclick="logout()"><span class="nav-icon"></span> Logout</a>
+      <a href="supervisor-dashboard.html" class="nav-item">
+        <i class="ri-dashboard-line nav-icon"></i> Dashboard
+      </a>
+      <div class="nav-divider"></div>
+      <span class="sidebar-section-label">Management</span>
+      <a href="vendors.html" class="nav-item">
+        <i class="ri-group-line nav-icon"></i> Vendors
+      </a>
+      <a href="stalls.html" class="nav-item active">
+        <i class="ri-store-line nav-icon"></i> Stalls
+      </a>
+      <a href="payments.html" class="nav-item">
+        <i class="ri-bank-card-line nav-icon"></i> Payment &amp; Billing
+      </a>
+      <a href="utilities.html" class="nav-item">
+        <i class="ri-flashlight-line nav-icon"></i> Utilities
+      </a>
+      <a href="violations.html" class="nav-item">
+        <i class="ri-error-warning-line nav-icon"></i> Violations
+      </a>
+      <div class="nav-divider"></div>
+      <span class="sidebar-section-label">Staff</span>
+      <a href="collector.html" class="nav-item">
+        <i class="ri-user-star-line nav-icon"></i> Collectors
+      </a>
+      <a href="reports.html" class="nav-item">
+        <i class="ri-bar-chart-line nav-icon"></i> Reports
+      </a>
+      <div class="nav-divider"></div>
+      <a href="#" class="nav-item nav-logout" onclick="logout()">
+        <i class="ri-logout-box-line nav-icon"></i> Logout
+      </a>
     </nav>
   </aside>
 
   <main class="main-content">
     <div class="topbar">
       <div class="topbar-left"><h1 class="page-title">Stall Management</h1><span class="breadcrumb">Home / Stalls</span></div>
-      <div class="topbar-right"><span class="user-info" id="userInfo"></span><span class="date-today" id="dateToday"></span></div>
+      <div class="topbar-right">
+        <div class="user-badge"><div class="user-avatar">S</div><span class="user-info" id="userInfo">Supervisor</span></div>
+        <span class="date-today" id="dateToday"></span>
+      </div>
     </div>
 
     <div class="controls-bar">

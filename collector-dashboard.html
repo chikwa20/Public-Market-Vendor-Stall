@@ -11,13 +11,20 @@
 
   <aside class="sidebar">
     <div class="sidebar-header">
-      <span class="brand-icon"></span>
-      <span class="sidebar-title">Market Vendor</span>
+      <div class="sidebar-logo"><i class="ri-user-star-line"></i></div>
+      <div class="sidebar-brand">
+        <span class="sidebar-title">MarketVend</span>
+        <span class="sidebar-sub">Collector</span>
+      </div>
     </div>
     <nav class="sidebar-nav">
-      <a href="collector-dashboard.html" class="nav-item active"><span class="nav-icon"></span> Dashboard</a>
-      <a href="payments.html"            class="nav-item"><span class="nav-icon"></span> Record Payment</a>
-      <a href="#" class="nav-item nav-logout" onclick="logout()"><span class="nav-icon"></span> Logout</a>
+      <a href="collector-dashboard.html" class="nav-item active">
+        <i class="ri-dashboard-line nav-icon"></i> Dashboard
+      </a>
+      <div class="nav-divider"></div>
+      <a href="#" class="nav-item nav-logout" onclick="logout()">
+        <i class="ri-logout-box-line nav-icon"></i> Logout
+      </a>
     </nav>
   </aside>
 
@@ -28,21 +35,28 @@
         <span class="breadcrumb">Home / Collections</span>
       </div>
       <div class="topbar-right">
-        <span class="user-info" id="userInfo"></span>
+        <div class="user-badge">
+          <div class="user-avatar" id="avatarInitial">C</div>
+          <span class="user-info" id="userInfo">Collector</span>
+        </div>
         <span class="date-today" id="dateToday"></span>
       </div>
     </div>
 
     <div class="cards-grid" id="colStatsGrid"></div>
 
-    <div class="table-section" style="margin:20px 28px;">
+    <div class="table-section" style="margin:16px 28px 28px;">
       <div class="table-header">
-        <h2 class="table-title">My Collection Records</h2>
-        <a href="payments.html" style="font-size:12px;color:#0277bd;">Record New Payment</a>
+        <h2 class="table-title">Collection Records</h2>
       </div>
       <div class="table-wrapper">
         <table class="data-table">
-          <thead><tr><th>Ref #</th><th>Stall</th><th>Amount</th><th>Method</th><th>Date</th><th>Time</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Ref #</th><th>Stall</th><th>Amount</th>
+              <th>Method</th><th>Date</th><th>Time</th>
+            </tr>
+          </thead>
           <tbody id="myCollections"></tbody>
         </table>
       </div>
@@ -55,31 +69,32 @@
   var session = requireAuth(['collector']);
 
   document.addEventListener('DOMContentLoaded', function(){
-    var payments    = dbGet(KEYS.payments, SEED_PAYMENTS);
-    var collectors  = dbGet(KEYS.collectors, SEED_COLLECTORS);
-    var today       = new Date().toISOString().slice(0,10);
-    var thisMonth   = today.slice(0,7);
+    var payments  = dbGet(KEYS.payments, SEED_PAYMENTS);
+    var today     = new Date().toISOString().slice(0,10);
+    var thisMonth = today.slice(0,7);
 
-    // Find collector record linked to this user (match by name as simple link)
-    // In a real app this would be a userId field on collector
-    var todayPays   = payments.filter(function(p){ return p.date === today; });
-    var monthPays   = payments.filter(function(p){ return p.date.startsWith(thisMonth); });
-    var todayTotal  = todayPays.reduce(function(s,p){ return s+p.amount; },0);
-    var monthTotal  = monthPays.reduce(function(s,p){ return s+p.amount; },0);
-    var allTotal    = payments.reduce(function(s,p){ return s+p.amount; },0);
+    var todayPays  = payments.filter(function(p){ return p.date===today; });
+    var monthPays  = payments.filter(function(p){ return p.date.startsWith(thisMonth); });
+    var todayTotal = todayPays.reduce(function(s,p){ return s+p.amount; },0);
+    var monthTotal = monthPays.reduce(function(s,p){ return s+p.amount; },0);
+    var allTotal   = payments.reduce(function(s,p){ return s+p.amount; },0);
 
     document.getElementById('colStatsGrid').innerHTML = [
-      '<div class="card card-blue"><div class="card-label">Today\'s Collections</div><div class="card-value">₱'+todayTotal+'</div><div class="card-sub">'+todayPays.length+' transactions</div></div>',
-      '<div class="card card-green"><div class="card-label">This Month</div><div class="card-value">₱'+monthTotal+'</div><div class="card-sub">'+monthPays.length+' transactions</div></div>',
-      '<div class="card"><div class="card-label">All Time Total</div><div class="card-value">₱'+allTotal+'</div><div class="card-sub">'+payments.length+' total transactions</div></div>'
+      card('ri-calendar-line',       "Today's Collections", '&#8369;'+todayTotal.toLocaleString(), todayPays.length+' transactions today',      'card-blue'),
+      card('ri-calendar-check-line', 'This Month',          '&#8369;'+monthTotal.toLocaleString(), monthPays.length+' transactions this month',  'card-green'),
+      card('ri-money-dollar-circle-line','All Time Total',  '&#8369;'+allTotal.toLocaleString(),   payments.length+' total transactions',        '')
     ].join('');
 
     var tb = '';
     payments.slice().reverse().forEach(function(p){
-      tb += '<tr><td>'+escHtml(p.ref)+'</td><td>'+escHtml(p.stall)+'</td><td>₱'+p.amount+'</td><td>'+escHtml(p.method)+'</td><td>'+escHtml(p.date)+'</td><td>'+escHtml(p.time)+'</td></tr>';
+      tb += '<tr><td>'+escHtml(p.ref)+'</td><td>'+escHtml(p.stall)+'</td><td>&#8369;'+p.amount+'</td><td>'+escHtml(p.method)+'</td><td>'+escHtml(p.date)+'</td><td>'+escHtml(p.time)+'</td></tr>';
     });
-    document.getElementById('myCollections').innerHTML = tb || '<tr><td colspan="6" style="text-align:center;color:#aaa;">No collections yet</td></tr>';
+    document.getElementById('myCollections').innerHTML = tb || '<tr><td colspan="6" style="text-align:center;color:#aaa;padding:16px;">No collections yet</td></tr>';
   });
+
+  function card(icon, label, val, sub, cls) {
+    return '<div class="card '+cls+'"><i class="'+icon+' card-icon"></i><div class="card-label">'+label+'</div><div class="card-value">'+val+'</div><div class="card-sub">'+sub+'</div></div>';
+  }
 </script>
 </body>
 </html>

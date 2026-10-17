@@ -11,7 +11,9 @@ const KEYS = {
   vendors:    'pmsvs_vendors',
   payments:   'pmsvs_payments',
   bills:      'pmsvs_bills',
-  collectors: 'pmsvs_collectors'
+  collectors: 'pmsvs_collectors',
+  utilities:  'pmsvs_utilities',
+  violations: 'pmsvs_violations'
 };
 
 // ---- Default seed data ----
@@ -66,6 +68,23 @@ const SEED_PAYMENTS = [
 const SEED_COLLECTORS = [
   { id: 'CT-001', name: 'Roberto Garcia', position: 'Municipal Collector', contact: '0912-345-6789', status: 'Active' },
   { id: 'CT-002', name: 'Ana Reyes',      position: 'Municipal Collector', contact: '0923-456-7890', status: 'Active' }
+];
+
+const SEED_UTILITIES = [
+  { id:'UTL-001', type:'Water',       vendorId:'VND-001', stallId:'STL-001', period:'2026-10', dueDate:'2026-10-20', usage:12, rate:25, amount:300,  paid:300, status:'Paid',           createdAt:'2026-10-01' },
+  { id:'UTL-002', type:'Electricity', vendorId:'VND-001', stallId:'STL-001', period:'2026-10', dueDate:'2026-10-20', usage:45, rate:12, amount:540,  paid:0,   status:'Unpaid',          createdAt:'2026-10-01' },
+  { id:'UTL-003', type:'Water',       vendorId:'VND-002', stallId:'STL-002', period:'2026-10', dueDate:'2026-10-20', usage:8,  rate:25, amount:200,  paid:0,   status:'Unpaid',          createdAt:'2026-10-01' },
+  { id:'UTL-004', type:'Electricity', vendorId:'VND-003', stallId:'STL-003', period:'2026-10', dueDate:'2026-10-20', usage:60, rate:12, amount:720,  paid:300, status:'Partially Paid',  createdAt:'2026-10-01' },
+  { id:'UTL-005', type:'Water',       vendorId:'VND-004', stallId:'STL-005', period:'2026-10', dueDate:'2026-10-20', usage:10, rate:25, amount:250,  paid:250, status:'Paid',            createdAt:'2026-10-01' },
+  { id:'UTL-006', type:'Electricity', vendorId:'VND-005', stallId:'STL-007', period:'2026-10', dueDate:'2026-10-20', usage:80, rate:12, amount:960,  paid:0,   status:'Unpaid',          createdAt:'2026-10-01' }
+];
+
+const SEED_VIOLATIONS = [
+  { id:'VIO-001', vendorId:'VND-002', stallId:'STL-002', type:'Unsanitary Stall',       description:'Stall found with accumulated garbage during inspection.', severity:'Minor',    fine:500,  finePaid:0,   status:'Open',         date:'2026-10-05', recordedBy:'Supervisor Perez', resolveNote:'' },
+  { id:'VIO-002', vendorId:'VND-003', stallId:'STL-003', type:'Unauthorized Extension', description:'Vendor extended goods beyond assigned stall boundary.',   severity:'Moderate', fine:1000, finePaid:1000,status:'Resolved',     date:'2026-09-20', recordedBy:'Supervisor Perez', resolveNote:'Vendor removed extension and paid fine.' },
+  { id:'VIO-003', vendorId:'VND-005', stallId:'STL-007', type:'Late Payment',           description:'Monthly rental not paid within the grace period.',        severity:'Minor',    fine:200,  finePaid:0,   status:'Open',         date:'2026-10-10', recordedBy:'Supervisor Perez', resolveNote:'' },
+  { id:'VIO-004', vendorId:'VND-001', stallId:'STL-001', type:'Noise Violation',        description:'Vendor using amplified speakers during restricted hours.', severity:'Moderate', fine:750,  finePaid:0,   status:'Under Review', date:'2026-10-12', recordedBy:'Supervisor Perez', resolveNote:'' },
+  { id:'VIO-005', vendorId:'VND-004', stallId:'STL-005', type:'Expired Permits',        description:'Business permit expired as of Oct 1, 2026.',              severity:'Major',    fine:2000, finePaid:0,   status:'Open',         date:'2026-10-15', recordedBy:'Supervisor Perez', resolveNote:'' }
 ];
 
 // ================================================
@@ -149,7 +168,7 @@ function setDate(id) {
 
 function setUserInfo(session) {
   var el = document.getElementById('userInfo');
-  if (el && session) el.textContent = '👤 ' + session.name;
+  if (el && session) el.textContent = session.name;
 }
 
 function nextAutoId(prefix, list, field) {

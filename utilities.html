@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Utility Billing – PMSVS</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="system-page">
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo"><i class="ri-store-2-line"></i></div>
+      <div class="sidebar-brand">
+        <span class="sidebar-title">MarketVend</span>
+        <span class="sidebar-sub">Supervisor</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="supervisor-dashboard.html" class="nav-item"><i class="ri-dashboard-line nav-icon"></i> Dashboard</a>
+      <div class="nav-divider"></div>
+      <span class="sidebar-section-label">Management</span>
+      <a href="vendors.html"    class="nav-item"><i class="ri-group-line nav-icon"></i> Vendors</a>
+      <a href="stalls.html"     class="nav-item"><i class="ri-store-line nav-icon"></i> Stalls</a>
+      <a href="payments.html"   class="nav-item"><i class="ri-bank-card-line nav-icon"></i> Payment &amp; Billing</a>
+      <a href="utilities.html"  class="nav-item active"><i class="ri-flashlight-line nav-icon"></i> Utilities</a>
+      <a href="violations.html" class="nav-item"><i class="ri-error-warning-line nav-icon"></i> Violations</a>
+      <div class="nav-divider"></div>
+      <span class="sidebar-section-label">Staff</span>
+      <a href="collector.html"  class="nav-item"><i class="ri-user-star-line nav-icon"></i> Collectors</a>
+      <a href="reports.html"    class="nav-item"><i class="ri-bar-chart-line nav-icon"></i> Reports</a>
+      <div class="nav-divider"></div>
+      <a href="#" class="nav-item nav-logout" onclick="logout()"><i class="ri-logout-box-line nav-icon"></i> Logout</a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">Utility Billing</h1>
+        <span class="breadcrumb">Home / Utilities</span>
+      </div>
+      <div class="topbar-right">
+        <div class="user-badge">
+          <div class="user-avatar">S</div>
+          <span class="user-info" id="userInfo">Supervisor</span>
+        </div>
+        <span class="date-today" id="dateToday"></span>
+      </div>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="cards-grid" id="utilStatsGrid"></div>
+
+    <!-- TABS -->
+    <div class="tabs-bar">
+      <button id="tabWater" class="tab-btn tab-active" onclick="switchTab('water')"><i class="ri-water-flash-line"></i> Water Bills</button>
+      <button id="tabElec"  class="tab-btn" onclick="switchTab('elec')"><i class="ri-bolt-line"></i> Electricity Bills</button>
+    </div>
+
+    <!-- WATER PANEL -->
+    <div id="panelWater">
+      <div class="controls-bar">
+        <div class="search-group">
+          <input type="text" id="waterSearch" class="search-input" placeholder="Search vendor or stall…" oninput="filterWater()" />
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <select id="waterStatusFilter" class="form-input" style="width:160px;" onchange="filterWater()">
+            <option value="">All Statuses</option>
+            <option value="Unpaid">Unpaid</option>
+            <option value="Paid">Paid</option>
+            <option value="Partially Paid">Partially Paid</option>
+          </select>
+          <button class="btn-primary" onclick="openAddUtil('Water')">+ Generate Water Bill</button>
+        </div>
+      </div>
+      <div class="table-section" style="margin:8px 28px 28px;">
+        <div class="table-header">
+          <h2 class="table-title">Water Bills</h2>
+          <span class="table-note" id="waterCount">Showing 0 records</span>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Bill ID</th><th>Vendor</th><th>Stall</th><th>Period</th>
+                <th>Usage (m³)</th><th>Rate/m³</th><th>Amount</th><th>Status</th><th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="waterTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ELECTRICITY PANEL -->
+    <div id="panelElec" style="display:none;">
+      <div class="controls-bar">
+        <div class="search-group">
+          <input type="text" id="elecSearch" class="search-input" placeholder="Search vendor or stall…" oninput="filterElec()" />
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <select id="elecStatusFilter" class="form-input" style="width:160px;" onchange="filterElec()">
+            <option value="">All Statuses</option>
+            <option value="Unpaid">Unpaid</option>
+            <option value="Paid">Paid</option>
+            <option value="Partially Paid">Partially Paid</option>
+          </select>
+          <button class="btn-primary" onclick="openAddUtil('Electricity')">+ Generate Electricity Bill</button>
+        </div>
+      </div>
+      <div class="table-section" style="margin:8px 28px 28px;">
+        <div class="table-header">
+          <h2 class="table-title">Electricity Bills</h2>
+          <span class="table-note" id="elecCount">Showing 0 records</span>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Bill ID</th><th>Vendor</th><th>Stall</th><th>Period</th>
+                <th>Usage (kWh)</th><th>Rate/kWh</th><th>Amount</th><th>Status</th><th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="elecTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ADD UTILITY BILL MODAL -->
+<div class="modal-overlay" id="utilFormModal" style="display:none;">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header">
+      <h3 id="utilFormTitle">Generate Utility Bill</h3>
+      <button class="modal-close" onclick="closeModal('utilFormModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="form-error" id="utilFormError"></p>
+      <input type="hidden" id="utilType" />
+      <div class="form-group">
+        <label>Vendor <span class="required">*</span></label>
+        <select id="fUVendor" class="form-input" onchange="onUtilVendorChange()">
+          <option value="">— Select Vendor —</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Stall</label>
+        <input type="text" id="fUStall" class="form-input" readonly />
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label>Billing Period (YYYY-MM) <span class="required">*</span></label>
+          <input type="month" id="fUPeriod" class="form-input" />
+        </div>
+        <div class="form-group">
+          <label>Due Date <span class="required">*</span></label>
+          <input type="date" id="fUDue" class="form-input" />
+        </div>
+        <div class="form-group">
+          <label id="usageLabel">Usage (units) <span class="required">*</span></label>
+          <input type="number" id="fUUsage" class="form-input" min="0" step="0.01" placeholder="0.00" />
+        </div>
+        <div class="form-group">
+          <label id="rateLabel">Rate per unit (₱) <span class="required">*</span></label>
+          <input type="number" id="fURate" class="form-input" min="0" step="0.01" placeholder="0.00" />
+        </div>
+        <div class="form-group">
+          <label>Computed Amount (₱)</label>
+          <input type="number" id="fUAmount" class="form-input" readonly />
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="fUStatus" class="form-input">
+            <option value="Unpaid">Unpaid</option>
+            <option value="Partially Paid">Partially Paid</option>
+            <option value="Paid">Paid</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="saveUtil()">Generate Bill</button>
+      <button class="btn-secondary" onclick="closeModal('utilFormModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- MARK PAID MODAL -->
+<div class="modal-overlay" id="utilPayModal" style="display:none;">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header">
+      <h3>Mark as Paid</h3>
+      <button class="modal-close" onclick="closeModal('utilPayModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="form-error" id="utilPayError"></p>
+      <input type="hidden" id="utilPayId" />
+      <div class="form-group">
+        <label>Amount to Pay (₱) <span class="required">*</span></label>
+        <input type="number" id="fUpAmount" class="form-input" min="1" />
+      </div>
+      <div class="form-group">
+        <label>Payment Method</label>
+        <select id="fUpMethod" class="form-input">
+          <option value="Cash">Cash</option>
+          <option value="GCash">GCash</option>
+          <option value="Bank Transfer">Bank Transfer</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="confirmUtilPay()">Record Payment</button>
+      <button class="btn-secondary" onclick="closeModal('utilPayModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW DETAIL MODAL -->
+<div class="modal-overlay" id="utilViewModal" style="display:none;">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-header">
+      <h3>Utility Bill Details</h3>
+      <button class="modal-close" onclick="closeModal('utilViewModal')">✕</button>
+    </div>
+    <div class="modal-body" id="utilViewBody"></div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('utilViewModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="js/app.js"></script>
+<script>
+  requireAuth(['supervisor']);
+
+  // Extend KEYS & seeds for utilities
+  KEYS.utilities = KEYS.utilities || 'pmsvs_utilities';
+  if (!window.SEED_UTILITIES) {
+    window.SEED_UTILITIES = [
+      { id:'UTL-001', type:'Water',       vendorId:'VND-001', stallId:'STL-001', period:'2026-10', dueDate:'2026-10-20', usage:12, rate:25, amount:300,  paid:300, status:'Paid',           createdAt:'2026-10-01' },
+      { id:'UTL-002', type:'Electricity', vendorId:'VND-001', stallId:'STL-001', period:'2026-10', dueDate:'2026-10-20', usage:45, rate:12, amount:540,  paid:0,   status:'Unpaid',          createdAt:'2026-10-01' },
+      { id:'UTL-003', type:'Water',       vendorId:'VND-002', stallId:'STL-002', period:'2026-10', dueDate:'2026-10-20', usage:8,  rate:25, amount:200,  paid:0,   status:'Unpaid',          createdAt:'2026-10-01' },
+      { id:'UTL-004', type:'Electricity', vendorId:'VND-003', stallId:'STL-003', period:'2026-10', dueDate:'2026-10-20', usage:60, rate:12, amount:720,  paid:300, status:'Partially Paid',  createdAt:'2026-10-01' },
+      { id:'UTL-005', type:'Water',       vendorId:'VND-004', stallId:'STL-005', period:'2026-10', dueDate:'2026-10-20', usage:10, rate:25, amount:250,  paid:250, status:'Paid',            createdAt:'2026-10-01' },
+      { id:'UTL-006', type:'Electricity', vendorId:'VND-005', stallId:'STL-007', period:'2026-10', dueDate:'2026-10-20', usage:80, rate:12, amount:960,  paid:0,   status:'Unpaid',          createdAt:'2026-10-01' }
+    ];
+  }
+
+  function getUtils()   { return dbGet(KEYS.utilities, SEED_UTILITIES); }
+  function getVendors() { return dbGet(KEYS.vendors, SEED_VENDORS); }
+  function getStalls()  { return dbGet(KEYS.stalls,  SEED_STALLS); }
+
+  // ---------- STATS ----------
+  function renderStats() {
+    var utils = getUtils();
+    var water = utils.filter(function(u){ return u.type==='Water'; });
+    var elec  = utils.filter(function(u){ return u.type==='Electricity'; });
+    var unpaidW = water.filter(function(u){ return u.status!=='Paid'; }).reduce(function(s,u){ return s+(u.amount-u.paid); },0);
+    var unpaidE = elec.filter(function(u){ return u.status!=='Paid'; }).reduce(function(s,u){ return s+(u.amount-u.paid); },0);
+    var collW   = water.reduce(function(s,u){ return s+u.paid; },0);
+    var collE   = elec.reduce(function(s,u){ return s+u.paid; },0);
+
+    document.getElementById('utilStatsGrid').innerHTML = [
+      '<div class="card card-blue"><i class="ri-water-flash-line card-icon"></i><div class="card-label">Water Collected</div><div class="card-value">&#8369;'+collW.toLocaleString()+'</div><div class="card-sub">'+water.length+' bills</div></div>',
+      '<div class="card card-orange"><i class="ri-water-flash-line card-icon"></i><div class="card-label">Water Outstanding</div><div class="card-value">&#8369;'+unpaidW.toLocaleString()+'</div><div class="card-sub">Unpaid water balance</div></div>',
+      '<div class="card card-blue"><i class="ri-bolt-line card-icon"></i><div class="card-label">Electricity Collected</div><div class="card-value">&#8369;'+collE.toLocaleString()+'</div><div class="card-sub">'+elec.length+' bills</div></div>',
+      '<div class="card card-orange"><i class="ri-bolt-line card-icon"></i><div class="card-label">Electricity Outstanding</div><div class="card-value">&#8369;'+unpaidE.toLocaleString()+'</div><div class="card-sub">Unpaid electricity balance</div></div>'
+    ].join('');
+  }
+
+  // ---------- TABS ----------
+  function switchTab(tab) {
+    document.getElementById('panelWater').style.display = tab==='water' ? '' : 'none';
+    document.getElementById('panelElec').style.display  = tab==='elec'  ? '' : 'none';
+    document.getElementById('tabWater').classList.toggle('tab-active', tab==='water');
+    document.getElementById('tabElec').classList.toggle('tab-active',  tab==='elec');
+    if (tab==='water') renderWater(getUtils().filter(function(u){ return u.type==='Water'; }));
+    if (tab==='elec')  renderElec(getUtils().filter(function(u){ return u.type==='Electricity'; }));
+  }
+
+  // ---------- RENDER ----------
+  function statusBadge(s){ return s==='Paid'?'badge-active':s==='Unpaid'?'badge-inactive':'badge-pending'; }
+
+  function renderWater(list) {
+    var vendors = getVendors(); var stalls = getStalls();
+    var tb = '';
+    list.forEach(function(u){
+      var v = vendors.find(function(x){ return x.id===u.vendorId; });
+      var s = stalls.find(function(x){ return x.id===u.stallId; });
+      tb += '<tr>'+
+        '<td>'+escHtml(u.id)+'</td><td>'+(v?escHtml(v.name):'—')+'</td><td>'+(s?escHtml(s.number):'—')+'</td>'+
+        '<td>'+escHtml(u.period)+'</td><td>'+u.usage+'</td><td>₱'+u.rate+'</td><td>₱'+u.amount+'</td>'+
+        '<td><span class="badge '+statusBadge(u.status)+'">'+escHtml(u.status)+'</span></td>'+
+        '<td class="action-cell">'+
+          '<button class="btn-view" onclick="viewUtil(\''+u.id+'\')">View</button>'+
+          (u.status!=='Paid'?'<button class="btn-edit" onclick="openUtilPay(\''+u.id+'\')">Pay</button>':'')+
+          '<button class="btn-delete" onclick="deleteUtil(\''+u.id+'\')">Del</button>'+
+        '</td></tr>';
+    });
+    document.getElementById('waterTableBody').innerHTML = tb || '<tr><td colspan="9" style="text-align:center;color:#aaa;padding:16px;">No water bills</td></tr>';
+    document.getElementById('waterCount').textContent = 'Showing '+list.length+' record'+(list.length!==1?'s':'');
+  }
+
+  function renderElec(list) {
+    var vendors = getVendors(); var stalls = getStalls();
+    var tb = '';
+    list.forEach(function(u){
+      var v = vendors.find(function(x){ return x.id===u.vendorId; });
+      var s = stalls.find(function(x){ return x.id===u.stallId; });
+      tb += '<tr>'+
+        '<td>'+escHtml(u.id)+'</td><td>'+(v?escHtml(v.name):'—')+'</td><td>'+(s?escHtml(s.number):'—')+'</td>'+
+        '<td>'+escHtml(u.period)+'</td><td>'+u.usage+'</td><td>₱'+u.rate+'</td><td>₱'+u.amount+'</td>'+
+        '<td><span class="badge '+statusBadge(u.status)+'">'+escHtml(u.status)+'</span></td>'+
+        '<td class="action-cell">'+
+          '<button class="btn-view" onclick="viewUtil(\''+u.id+'\')">View</button>'+
+          (u.status!=='Paid'?'<button class="btn-edit" onclick="openUtilPay(\''+u.id+'\')">Pay</button>':'')+
+          '<button class="btn-delete" onclick="deleteUtil(\''+u.id+'\')">Del</button>'+
+        '</td></tr>';
+    });
+    document.getElementById('elecTableBody').innerHTML = tb || '<tr><td colspan="9" style="text-align:center;color:#aaa;padding:16px;">No electricity bills</td></tr>';
+    document.getElementById('elecCount').textContent = 'Showing '+list.length+' record'+(list.length!==1?'s':'');
+  }
+
+  // ---------- FILTER ----------
+  function filterWater() {
+    var q  = document.getElementById('waterSearch').value.toLowerCase();
+    var sf = document.getElementById('waterStatusFilter').value;
+    var vendors = getVendors(); var stalls = getStalls();
+    renderWater(getUtils().filter(function(u){
+      if (u.type !== 'Water') return false;
+      var v = vendors.find(function(x){ return x.id===u.vendorId; });
+      var s = stalls.find(function(x){ return x.id===u.stallId; });
+      return ((v?v.name:'')+(s?s.number:'')).toLowerCase().includes(q) && (!sf||u.status===sf);
+    }));
+  }
+
+  function filterElec() {
+    var q  = document.getElementById('elecSearch').value.toLowerCase();
+    var sf = document.getElementById('elecStatusFilter').value;
+    var vendors = getVendors(); var stalls = getStalls();
+    renderElec(getUtils().filter(function(u){
+      if (u.type !== 'Electricity') return false;
+      var v = vendors.find(function(x){ return x.id===u.vendorId; });
+      var s = stalls.find(function(x){ return x.id===u.stallId; });
+      return ((v?v.name:'')+(s?s.number:'')).toLowerCase().includes(q) && (!sf||u.status===sf);
+    }));
+  }
+
+  // ---------- ADD MODAL ----------
+  function openAddUtil(type) {
+    document.getElementById('utilType').value = type;
+    document.getElementById('utilFormTitle').textContent = 'Generate '+type+' Bill';
+    document.getElementById('utilFormError').textContent = '';
+    document.getElementById('fUStall').value   = '';
+    document.getElementById('fUPeriod').value  = '';
+    document.getElementById('fUDue').value     = '';
+    document.getElementById('fUUsage').value   = '';
+    document.getElementById('fUAmount').value  = '';
+    document.getElementById('usageLabel').innerHTML = (type==='Water'?'Usage (m³)':'Usage (kWh)')+' <span class="required">*</span>';
+    document.getElementById('rateLabel').innerHTML  = (type==='Water'?'Rate per m³ (₱)':'Rate per kWh (₱)')+' <span class="required">*</span>';
+    document.getElementById('fURate').value    = type==='Water' ? '25' : '12';
+    setSelect('fUStatus','Unpaid');
+
+    var sel = document.getElementById('fUVendor');
+    sel.innerHTML = '<option value="">— Select Vendor —</option>';
+    getVendors().filter(function(v){ return v.status==='Active'; }).forEach(function(v){
+      sel.innerHTML += '<option value="'+v.id+'">'+escHtml(v.name)+'</option>';
+    });
+
+    // Auto-compute
+    ['fUUsage','fURate'].forEach(function(id){
+      document.getElementById(id).addEventListener('input', computeAmount);
+    });
+
+    showModal('utilFormModal');
+  }
+
+  function computeAmount() {
+    var u = parseFloat(document.getElementById('fUUsage').value)||0;
+    var r = parseFloat(document.getElementById('fURate').value)||0;
+    document.getElementById('fUAmount').value = (u*r).toFixed(2);
+  }
+
+  function onUtilVendorChange() {
+    var vid = document.getElementById('fUVendor').value;
+    var v   = getVendors().find(function(x){ return x.id===vid; });
+    var s   = v && v.stallId ? getStalls().find(function(x){ return x.id===v.stallId; }) : null;
+    document.getElementById('fUStall').value = s ? s.number+' – '+s.section : '';
+  }
+
+  function saveUtil() {
+    var type   = document.getElementById('utilType').value;
+    var vid    = document.getElementById('fUVendor').value;
+    var period = document.getElementById('fUPeriod').value;
+    var due    = document.getElementById('fUDue').value;
+    var usage  = parseFloat(document.getElementById('fUUsage').value);
+    var rate   = parseFloat(document.getElementById('fURate').value);
+    var status = document.getElementById('fUStatus').value;
+    var errEl  = document.getElementById('utilFormError');
+    errEl.textContent = '';
+
+    if (!vid)         { errEl.textContent='Select a vendor.'; return; }
+    if (!period)      { errEl.textContent='Billing period is required.'; return; }
+    if (!due)         { errEl.textContent='Due date is required.'; return; }
+    if (isNaN(usage)) { errEl.textContent='Usage is required.'; return; }
+    if (isNaN(rate))  { errEl.textContent='Rate is required.'; return; }
+
+    var v     = getVendors().find(function(x){ return x.id===vid; });
+    var utils = getUtils();
+    var newU  = {
+      id: nextAutoId('UTL', utils), type: type, vendorId: vid,
+      stallId: v ? v.stallId : null, period: period, dueDate: due,
+      usage: usage, rate: rate, amount: parseFloat((usage*rate).toFixed(2)),
+      paid: 0, status: status, createdAt: new Date().toISOString().slice(0,10)
+    };
+    utils.push(newU);
+    dbSet(KEYS.utilities, utils);
+    closeModal('utilFormModal');
+    renderStats();
+    if (type==='Water') renderWater(getUtils().filter(function(u){ return u.type==='Water'; }));
+    else renderElec(getUtils().filter(function(u){ return u.type==='Electricity'; }));
+    showToast(type+' bill generated.','success');
+  }
+
+  // ---------- PAY MODAL ----------
+  function openUtilPay(id) {
+    var u = getUtils().find(function(x){ return x.id===id; });
+    if (!u) return;
+    document.getElementById('utilPayId').value     = id;
+    document.getElementById('fUpAmount').value     = (u.amount - u.paid);
+    document.getElementById('utilPayError').textContent = '';
+    setSelect('fUpMethod','Cash');
+    showModal('utilPayModal');
+  }
+
+  function confirmUtilPay() {
+    var id  = document.getElementById('utilPayId').value;
+    var amt = parseFloat(document.getElementById('fUpAmount').value);
+    var errEl = document.getElementById('utilPayError');
+    errEl.textContent = '';
+    if (isNaN(amt)||amt<=0) { errEl.textContent='Enter a valid amount.'; return; }
+
+    var utils = getUtils();
+    var idx = utils.findIndex(function(u){ return u.id===id; });
+    if (idx===-1) return;
+
+    utils[idx].paid += amt;
+    if (utils[idx].paid >= utils[idx].amount) { utils[idx].paid = utils[idx].amount; utils[idx].status='Paid'; }
+    else utils[idx].status = 'Partially Paid';
+    dbSet(KEYS.utilities, utils);
+    closeModal('utilPayModal');
+    renderStats();
+    renderWater(getUtils().filter(function(u){ return u.type==='Water'; }));
+    renderElec(getUtils().filter(function(u){ return u.type==='Electricity'; }));
+    showToast('Payment recorded.','success');
+  }
+
+  // ---------- VIEW ----------
+  function viewUtil(id) {
+    var u = getUtils().find(function(x){ return x.id===id; });
+    if (!u) return;
+    var v = getVendors().find(function(x){ return x.id===u.vendorId; });
+    var s = getStalls().find(function(x){ return x.id===u.stallId; });
+    var cls = statusBadge(u.status);
+    document.getElementById('utilViewBody').innerHTML =
+      dr('Bill ID',u.id)+dr('Type',u.type)+dr('Vendor',v?v.name:'—')+dr('Stall',s?s.number:'—')+
+      dr('Period',u.period)+dr('Due Date',u.dueDate)+
+      dr('Usage', u.usage+(u.type==='Water'?' m³':' kWh'))+dr('Rate','₱'+u.rate+'/unit')+
+      dr('Total Amount','₱'+u.amount)+dr('Amount Paid','₱'+u.paid)+dr('Balance','₱'+(u.amount-u.paid))+
+      '<div class="staff-detail-row"><span class="staff-detail-label">Status</span><span class="staff-detail-value"><span class="badge '+cls+'">'+escHtml(u.status)+'</span></span></div>';
+    showModal('utilViewModal');
+  }
+
+  // ---------- DELETE ----------
+  function deleteUtil(id) {
+    if (!confirm('Delete this utility bill?')) return;
+    dbSet(KEYS.utilities, getUtils().filter(function(u){ return u.id!==id; }));
+    renderStats();
+    renderWater(getUtils().filter(function(u){ return u.type==='Water'; }));
+    renderElec(getUtils().filter(function(u){ return u.type==='Electricity'; }));
+    showToast('Utility bill deleted.','error');
+  }
+
+  function dr(label,val){ return '<div class="staff-detail-row"><span class="staff-detail-label">'+label+'</span><span class="staff-detail-value">'+escHtml(String(val))+'</span></div>'; }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    renderStats();
+    renderWater(getUtils().filter(function(u){ return u.type==='Water'; }));
+  });
+</script>
+</body>
+</html>
